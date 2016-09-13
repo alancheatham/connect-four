@@ -1,0 +1,39 @@
+.game {
+
+    .grid {
+    	padding: 100px;
+
+		.row {
+			height: 150px;
+		}
+    }
+
+    .end {
+    	position: absolute;
+    	top:      200px;
+    	left:     450px;
+
+    	>.cf-text-button {
+
+    		&.winner-text {
+    			> button {
+	    			font-size:      3em;
+	    			padding-bottom: 100px;
+	    			color:          black;
+    			}
+
+    			&.white > button {
+    				color: white;
+    			}
+    		}
+
+
+    		&.play-again > button {
+				font-size:    3em;
+				border-style: solid;
+				border-width: 2px;
+			}
+    	}
+
+    }
+}
