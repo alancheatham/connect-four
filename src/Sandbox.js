@@ -7,6 +7,8 @@ import { createStore } from 'redux';
 // containers
 import ConnectFourContainer from './containers/ConnectFourContainer';
 
+console.log('hi');
+
 // root reducer
 import rootReducer from './reducers/index';
 
