@@ -5,7 +5,7 @@ import { Provider }    from 'react-redux';
 import { createStore } from 'redux';
 
 // containers
-import ConnectFourContainer from './containers/ConnectFourContainer';
+import ConnectFourContainer from './containers/ConnectFourContainer'; 
 
 // root reducer
 import rootReducer from './reducers/index';
