@@ -5,6 +5,7 @@ import { Provider }    from 'react-redux';
 import { createStore } from 'redux';
 
 // containers
+import GameContainer        from './containers/GameContainer';
 import ConnectFourContainer from './containers/ConnectFourContainer';
 
 // root reducer
