@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "218bd41672730b77da34"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "13b4c59d7ee39708bc83"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -8984,11 +8984,11 @@
 
 	var _ConnectFourContainer2 = _interopRequireDefault(_ConnectFourContainer);
 
-	var _index = __webpack_require__(320);
+	var _index = __webpack_require__(323);
 
 	var _index2 = _interopRequireDefault(_index);
 
-	var _GameService = __webpack_require__(329);
+	var _GameService = __webpack_require__(332);
 
 	var _GameService2 = _interopRequireDefault(_GameService);
 
@@ -9005,8 +9005,8 @@
 		window.devToolsExtension ? window.devToolsExtension() : undefined);
 
 		if (true) {
-			module.hot.accept(320, function () {
-				return store.replaceReducer(__webpack_require__(320).default);
+			module.hot.accept(323, function () {
+				return store.replaceReducer(__webpack_require__(323).default);
 			});
 		}
 
@@ -35515,7 +35515,7 @@
 
 	var _MenuContainer2 = _interopRequireDefault(_MenuContainer);
 
-	var _screenConstants = __webpack_require__(317);
+	var _screenConstants = __webpack_require__(320);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35525,7 +35525,7 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	__webpack_require__(318);
+	__webpack_require__(321);
 	// import cn                   from 'classnames';
 
 	// containers
@@ -35871,11 +35871,15 @@
 
 	var _reactRedux = __webpack_require__(262);
 
+	var _MenuGamesContainer = __webpack_require__(312);
+
+	var _MenuGamesContainer2 = _interopRequireDefault(_MenuGamesContainer);
+
 	var _TextButton = __webpack_require__(298);
 
 	var _TextButton2 = _interopRequireDefault(_TextButton);
 
-	var _Chat = __webpack_require__(312);
+	var _Chat = __webpack_require__(315);
 
 	var _Chat2 = _interopRequireDefault(_Chat);
 
@@ -35889,8 +35893,11 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	__webpack_require__(315);
+	__webpack_require__(318);
 	// import cn                   from 'classnames';
+
+	// containers
+
 
 	// components
 
@@ -35917,8 +35924,6 @@
 	    }, {
 	        key: 'render',
 	        value: function render() {
-	            var _this2 = this;
-
 	            var name = this.props.name;
 
 
@@ -35926,13 +35931,7 @@
 	                'div',
 	                { className: 'menu-container' },
 	                _react2.default.createElement(_Chat2.default, { name: name }),
-	                _react2.default.createElement(
-	                    _TextButton2.default,
-	                    { classes: ['create-game'], onClick: function onClick() {
-	                            return _this2.onStartGameClick();
-	                        } },
-	                    'Create Game'
-	                )
+	                _react2.default.createElement(_MenuGamesContainer2.default, null)
 	            );
 	        }
 	    }]);
@@ -35945,13 +35944,7 @@
 
 
 	    return { name: name };
-	}, function (dispatch) {
-	    return {
-	        startGame: function startGame() {
-	            return dispatch((0, _screenActions.startGame)());
-	        }
-	    };
-	})(Menu);
+	}, null)(Menu);
 
 	exports.default = MenuContainer;
 
@@ -35991,6 +35984,160 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _reactRedux = __webpack_require__(262);
+
+	var _TextButton = __webpack_require__(298);
+
+	var _TextButton2 = _interopRequireDefault(_TextButton);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	__webpack_require__(313);
+	// import cn                   from 'classnames';
+
+	// components
+
+	var MenuGames = function (_Component) {
+	    _inherits(MenuGames, _Component);
+
+	    function MenuGames() {
+	        _classCallCheck(this, MenuGames);
+
+	        return _possibleConstructorReturn(this, (MenuGames.__proto__ || Object.getPrototypeOf(MenuGames)).apply(this, arguments));
+	    }
+
+	    _createClass(MenuGames, [{
+	        key: 'onStartGameClick',
+	        value: function onStartGameClick() {
+	            var startGame = this.props.startGame;
+
+
+	            startGame();
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            var _this2 = this;
+
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'menu-games-container' },
+	                _react2.default.createElement(
+	                    _TextButton2.default,
+	                    { classes: ['create-game'], onClick: function onClick() {
+	                            return _this2.onStartGameClick();
+	                        } },
+	                    'Create Game'
+	                )
+	            );
+	        }
+	    }]);
+
+	    return MenuGames;
+	}(_react.Component);
+
+	var MenuGamesContainer = (0, _reactRedux.connect)(null, function (dispatch) {
+	    return {
+	        startGame: function (_startGame) {
+	            function startGame() {
+	                return _startGame.apply(this, arguments);
+	            }
+
+	            startGame.toString = function () {
+	                return _startGame.toString();
+	            };
+
+	            return startGame;
+	        }(function () {
+	            return dispatch(startGame());
+	        })
+	    };
+	})(MenuGames);
+
+	exports.default = MenuGamesContainer;
+
+
+	;(function register() {
+	    /* react-hot-loader/webpack */if (process.env.NODE_ENV !== 'production') {
+	        if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+	            return;
+	        }if (typeof module.exports === 'function') {
+	            __REACT_HOT_LOADER__.register(module.exports, 'module.exports', "/Users/alancheatham/work/connect-four/src/containers/MenuGamesContainer.jsx");return;
+	        }for (var key in module.exports) {
+	            if (!Object.prototype.hasOwnProperty.call(module.exports, key)) {
+	                continue;
+	            }var namedExport = void 0;try {
+	                namedExport = module.exports[key];
+	            } catch (err) {
+	                continue;
+	            }__REACT_HOT_LOADER__.register(namedExport, key, "/Users/alancheatham/work/connect-four/src/containers/MenuGamesContainer.jsx");
+	        }
+	    }
+	})();
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+
+/***/ },
+/* 313 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(314);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(83)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(true) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept(314, function() {
+				var newContent = __webpack_require__(314);
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 314 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(82)();
+	// imports
+
+
+	// module
+	exports.push([module.id, ".menu-games-container {\n  display: inline-block;\n  width: 40%;\n  position: absolute;\n}\n.menu-games-container > .create-game {\n  top: 100px;\n}\n", ""]);
+
+	// exports
+
+
+/***/ },
+/* 315 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(86);
+
+	var _react2 = _interopRequireDefault(_react);
+
 	var _TextButton = __webpack_require__(298);
 
 	var _TextButton2 = _interopRequireDefault(_TextButton);
@@ -36005,7 +36152,7 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	__webpack_require__(313);
+	__webpack_require__(316);
 	// import cn                   from 'classnames';
 
 	// components
@@ -36013,7 +36160,8 @@
 
 	// default state
 	var defaultState = {
-	    messages: []
+	    messages: [],
+	    users: []
 	};
 
 	var Chat = function (_Component) {
@@ -36025,25 +36173,36 @@
 	        var _this = _possibleConstructorReturn(this, (Chat.__proto__ || Object.getPrototypeOf(Chat)).call(this, props));
 
 	        _this.state = defaultState;
+
 	        socket.on('chat update', function (msg) {
 	            return _this.onChatMessage(msg);
+	        });
+	        socket.on('user chat update', function (users) {
+	            return _this.onUserUpdate(users);
 	        });
 	        _this.enterChat();
 	        return _this;
 	    }
 
 	    _createClass(Chat, [{
-	        key: 'onChatMessage',
-	        value: function onChatMessage(msg) {
-	            this.setState({ messages: msg });
-	        }
-	    }, {
 	        key: 'enterChat',
 	        value: function enterChat() {
 	            var name = this.props.name;
 
 
-	            socket.emit('chat update', [].concat(_toConsumableArray(this.state.messages), [name + ' entered chat']));
+	            socket.emit('user chat update', name, true);
+	        }
+	    }, {
+	        key: 'onChatMessage',
+	        value: function onChatMessage(msg) {
+	            var messages = this.state.messages;
+
+	            this.setState({ messages: [].concat(_toConsumableArray(messages), [msg]) });
+	        }
+	    }, {
+	        key: 'onUserUpdate',
+	        value: function onUserUpdate(users) {
+	            this.setState({ users: users });
 	        }
 	    }, {
 	        key: 'onEnterClick',
@@ -36052,7 +36211,7 @@
 	            var input = this.refs.input;
 
 
-	            socket.emit('chat update', [].concat(_toConsumableArray(this.state.messages), [name + ': ' + input.value]));
+	            socket.emit('chat update', name + ': ' + input.value);
 	            input.value = '';
 	        }
 	    }, {
@@ -36060,18 +36219,34 @@
 	        value: function render() {
 	            var _this2 = this;
 
+	            var _state = this.state,
+	                messages = _state.messages,
+	                users = _state.users;
+
+
 	            var n = 0;
 	            return _react2.default.createElement(
 	                'div',
 	                { className: 'chat-container' },
 	                _react2.default.createElement(
 	                    'ul',
-	                    { ref: 'chat', className: 'chat' },
-	                    this.state.messages.map(function (message) {
+	                    { className: 'chat' },
+	                    messages.map(function (message) {
 	                        return _react2.default.createElement(
 	                            'li',
 	                            { key: n++ },
 	                            message
+	                        );
+	                    })
+	                ),
+	                _react2.default.createElement(
+	                    'ul',
+	                    { className: 'users' },
+	                    users.map(function (user) {
+	                        return _react2.default.createElement(
+	                            'li',
+	                            { key: n++ },
+	                            user
 	                        );
 	                    })
 	                ),
@@ -36113,116 +36288,44 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 313 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(314);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(83)(content, {});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(true) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept(314, function() {
-				var newContent = __webpack_require__(314);
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
-/* 314 */
-/***/ function(module, exports, __webpack_require__) {
-
-	exports = module.exports = __webpack_require__(82)();
-	// imports
-
-
-	// module
-	exports.push([module.id, ".chat-container {\n  padding: 20px;\n  width: 60%;\n  display: inline-block;\n}\n.chat-container > .chat {\n  height: 500px;\n  background: white;\n  list-style: none;\n}\n.chat-container > .chat li:nth-child(odd) {\n  background: #eee;\n}\n.chat-container > .input {\n  width: calc(100% - 100px);\n}\n.chat-container > .enter {\n  display: inline-block;\n  width: 100px;\n}\n", ""]);
-
-	// exports
-
-
-/***/ },
-/* 315 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-
-	// load the styles
-	var content = __webpack_require__(316);
-	if(typeof content === 'string') content = [[module.id, content, '']];
-	// add the styles to the DOM
-	var update = __webpack_require__(83)(content, {});
-	if(content.locals) module.exports = content.locals;
-	// Hot Module Replacement
-	if(true) {
-		// When the styles change, update the <style> tags
-		if(!content.locals) {
-			module.hot.accept(316, function() {
-				var newContent = __webpack_require__(316);
-				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-				update(newContent);
-			});
-		}
-		// When the module is disposed, remove the <style> tags
-		module.hot.dispose(function() { update(); });
-	}
-
-/***/ },
 /* 316 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(82)();
-	// imports
+	// style-loader: Adds some css to the DOM by adding a <style> tag
 
-
-	// module
-	exports.push([module.id, ".menu-container > .create-game {\n  display: inline-block;\n  width: 40%;\n  position: absolute;\n  top: 100px;\n}\n", ""]);
-
-	// exports
-
+	// load the styles
+	var content = __webpack_require__(317);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(83)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(true) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept(317, function() {
+				var newContent = __webpack_require__(317);
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
 
 /***/ },
 /* 317 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	exports = module.exports = __webpack_require__(82)();
+	// imports
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var LOGIN_SCREEN = exports.LOGIN_SCREEN = 'LOGIN_SCREEN';
-	var MENU_SCREEN = exports.MENU_SCREEN = 'MENU_SCREEN';
-	var GAME_SCREEN = exports.GAME_SCREEN = 'GAME_SCREEN';
 
-	;(function register() {
-	  /* react-hot-loader/webpack */if (process.env.NODE_ENV !== 'production') {
-	    if (typeof __REACT_HOT_LOADER__ === 'undefined') {
-	      return;
-	    }if (typeof module.exports === 'function') {
-	      __REACT_HOT_LOADER__.register(module.exports, 'module.exports', "/Users/alancheatham/work/connect-four/src/constants/screenConstants.js");return;
-	    }for (var key in module.exports) {
-	      if (!Object.prototype.hasOwnProperty.call(module.exports, key)) {
-	        continue;
-	      }var namedExport = void 0;try {
-	        namedExport = module.exports[key];
-	      } catch (err) {
-	        continue;
-	      }__REACT_HOT_LOADER__.register(namedExport, key, "/Users/alancheatham/work/connect-four/src/constants/screenConstants.js");
-	    }
-	  }
-	})();
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+	// module
+	exports.push([module.id, ".chat-container {\n  padding: 20px;\n  width: 60%;\n  display: inline-block;\n  position: relative;\n}\n.chat-container > .chat {\n  height: 500px;\n  background: white;\n  list-style: none;\n  display: inline-block;\n  width: 70%;\n}\n.chat-container > .chat li:nth-child(odd) {\n  background: #eee;\n}\n.chat-container > .users {\n  width: 30%;\n  height: 500px;\n  display: inline-block;\n  position: absolute;\n  background: white;\n  list-style: none;\n}\n.chat-container > .input {\n  width: calc(100% - 100px);\n}\n.chat-container > .enter {\n  display: inline-block;\n  width: 100px;\n}\n", ""]);
+
+	// exports
+
 
 /***/ },
 /* 318 */
@@ -36271,20 +36374,92 @@
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var LOGIN_SCREEN = exports.LOGIN_SCREEN = 'LOGIN_SCREEN';
+	var MENU_SCREEN = exports.MENU_SCREEN = 'MENU_SCREEN';
+	var GAME_SCREEN = exports.GAME_SCREEN = 'GAME_SCREEN';
+
+	;(function register() {
+	  /* react-hot-loader/webpack */if (process.env.NODE_ENV !== 'production') {
+	    if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+	      return;
+	    }if (typeof module.exports === 'function') {
+	      __REACT_HOT_LOADER__.register(module.exports, 'module.exports', "/Users/alancheatham/work/connect-four/src/constants/screenConstants.js");return;
+	    }for (var key in module.exports) {
+	      if (!Object.prototype.hasOwnProperty.call(module.exports, key)) {
+	        continue;
+	      }var namedExport = void 0;try {
+	        namedExport = module.exports[key];
+	      } catch (err) {
+	        continue;
+	      }__REACT_HOT_LOADER__.register(namedExport, key, "/Users/alancheatham/work/connect-four/src/constants/screenConstants.js");
+	    }
+	  }
+	})();
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+
+/***/ },
+/* 321 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(322);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(83)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(true) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept(322, function() {
+				var newContent = __webpack_require__(322);
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 322 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(82)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "", ""]);
+
+	// exports
+
+
+/***/ },
+/* 323 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
 
 	var _redux = __webpack_require__(269);
 
-	var _gameReducer = __webpack_require__(321);
+	var _gameReducer = __webpack_require__(324);
 
 	var _gameReducer2 = _interopRequireDefault(_gameReducer);
 
-	var _screenReducer = __webpack_require__(325);
+	var _screenReducer = __webpack_require__(328);
 
 	var _screenReducer2 = _interopRequireDefault(_screenReducer);
 
-	var _userReducer = __webpack_require__(327);
+	var _userReducer = __webpack_require__(330);
 
 	var _userReducer2 = _interopRequireDefault(_userReducer);
 
@@ -36319,7 +36494,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 321 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36330,13 +36505,13 @@
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var _gameDefaults = __webpack_require__(322);
+	var _gameDefaults = __webpack_require__(325);
 
 	var _gameDefaults2 = _interopRequireDefault(_gameDefaults);
 
 	var _gameTypes = __webpack_require__(302);
 
-	var _pegReducer = __webpack_require__(323);
+	var _pegReducer = __webpack_require__(326);
 
 	var _pegReducer2 = _interopRequireDefault(_pegReducer);
 
@@ -36399,7 +36574,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 322 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36435,7 +36610,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 323 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36446,7 +36621,7 @@
 
 	var _gameTypes = __webpack_require__(302);
 
-	var _pegDefaults = __webpack_require__(324);
+	var _pegDefaults = __webpack_require__(327);
 
 	var _pegDefaults2 = _interopRequireDefault(_pegDefaults);
 
@@ -36496,7 +36671,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 324 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36527,7 +36702,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 325 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36536,13 +36711,13 @@
 	    value: true
 	});
 
-	var _screenDefaults = __webpack_require__(326);
+	var _screenDefaults = __webpack_require__(329);
 
 	var _screenDefaults2 = _interopRequireDefault(_screenDefaults);
 
 	var _screenTypes = __webpack_require__(308);
 
-	var _screenConstants = __webpack_require__(317);
+	var _screenConstants = __webpack_require__(320);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -36590,7 +36765,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 326 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36599,7 +36774,7 @@
 	  value: true
 	});
 
-	var _screenConstants = __webpack_require__(317);
+	var _screenConstants = __webpack_require__(320);
 
 	exports.default = 'LOGIN_SCREEN';
 
@@ -36624,7 +36799,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 327 */
+/* 330 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36633,7 +36808,7 @@
 	    value: true
 	});
 
-	var _userDefaults = __webpack_require__(328);
+	var _userDefaults = __webpack_require__(331);
 
 	var _userDefaults2 = _interopRequireDefault(_userDefaults);
 
@@ -36684,7 +36859,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 328 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36715,7 +36890,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
 
 /***/ },
-/* 329 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';

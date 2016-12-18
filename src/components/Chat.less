@@ -1,14 +1,26 @@
 .chat-container {
-    padding: 20px;
-    width:   60%;
-    display: inline-block;
+    padding:  20px;
+    width:    60%;
+    display:  inline-block;
+    position: relative;
 
     >.chat {
         height:     500px;
         background: white;
         list-style: none;
+        display:    inline-block;
+        width:      70%;
 
         li:nth-child(odd) { background: #eee; }
+    }
+
+    >.users {
+        width:      30%;
+        height:     500px;
+        display:    inline-block;
+        position:   absolute;
+        background: white;
+        list-style: none;
     }
 
     >.input {

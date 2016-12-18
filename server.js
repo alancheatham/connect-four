@@ -20,6 +20,9 @@ var app  = require('express')();
 var http = require('http').Server(app);
 var io   = require('socket.io')(http);
 
+var usernames = {};
+var usersInChat = [];
+
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
@@ -29,12 +32,32 @@ app.get('/dist/cf.js',function(req,res){
 });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
   socket.on('disconnect', function(){
-    console.log('user disconnected');
+    var index = usersInChat.indexOf(socket.id);
+    if (index !== -1) {
+        usersInChat.splice(index, 1);
+        io.emit('chat update', usernames[socket.id] + ' left chat');
+        io.emit('user chat update', usersInChat.map(function (id) {
+           return usernames[id]; 
+        }));
+    }
   });
   socket.on('chat update', function(msg){
     io.emit('chat update', msg);
+  });
+  socket.on('user chat update', function(user, joined){
+    if (joined) {
+        usersInChat.push(socket.id);
+        usernames[socket.id] = user;
+        io.emit('chat update', user + ' joined chat');
+    }
+    else {
+        usersInChat.splice(usersInChat.indexOf(socket.id), 1);
+        io.emit('chat update', user + ' left chat');
+    }
+    io.emit('user chat update', usersInChat.map(function (id) {
+       return usernames[id]; 
+    }));
   });
 });
 

@@ -4,6 +4,9 @@ import React, { Component } from 'react';
 import { connect }          from 'react-redux';
 // import cn                   from 'classnames';
 
+// containers
+import MenuGamesContainer from './MenuGamesContainer';
+
 // components
 import TextButton from '../components/TextButton';
 import Chat       from '../components/Chat'
@@ -25,7 +28,7 @@ class Menu extends Component {
         return (
             <div className='menu-container'>
                 <Chat name={name} />
-                <TextButton classes={['create-game']} onClick={()=>this.onStartGameClick()}>Create Game</TextButton>
+                <MenuGamesContainer />
             </div>
         );
     }
@@ -37,9 +40,7 @@ const MenuContainer = connect(
 
         return { name };
     },
-    dispatch => ({
-        startGame: () => dispatch(startGame())
-    })
+    null
 )(Menu);
 
 export default MenuContainer;
