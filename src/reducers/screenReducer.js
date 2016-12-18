@@ -15,8 +15,10 @@ const screenReducer = (state = defaults, action = { type: false }) => {
     const { type, ...payload } = action;
     switch (type) {
         case LOGIN:
-            const { name } = payload;
             return MENU_SCREEN;
+
+        case START_GAME:
+            return GAME_SCREEN;
 
         default:
             return state;

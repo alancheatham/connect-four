@@ -8,10 +8,15 @@ import { connect }          from 'react-redux';
 import TextButton from '../components/TextButton';
 import Chat       from '../components/Chat'
 
+// actions
+import { startGame } from '../actions/screenActions';
+
 class Menu extends Component {
 
-    onButtonClick () {
+    onStartGameClick () {
+        const { startGame } = this.props;
 
+        startGame();
     }
 
     render () {
@@ -20,7 +25,7 @@ class Menu extends Component {
         return (
             <div className='menu-container'>
                 <Chat name={name} />
-                {/*<TextButton className='button' onClick={()=>this.onButtonClick()}>Enter</TextButton>*/}
+                <TextButton classes={['create-game']} onClick={()=>this.onStartGameClick()}>Create Game</TextButton>
             </div>
         );
     }
@@ -32,7 +37,9 @@ const MenuContainer = connect(
 
         return { name };
     },
-    null
+    dispatch => ({
+        startGame: () => dispatch(startGame())
+    })
 )(Menu);
 
 export default MenuContainer;

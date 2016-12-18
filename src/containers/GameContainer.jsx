@@ -89,7 +89,7 @@ class Game extends Component {
 			<div className='game'>
 				{this.renderGrid()}
 				{winner ? this.renderGameEnd(winner) : null}
-			</div>
+			</div>		
 		);
 	}
 }

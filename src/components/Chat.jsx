@@ -16,28 +16,39 @@ class Chat extends Component {
         super(props);
 
         this.state = defaultState;
+        socket.on('chat update', msg => this.onChatMessage(msg));
+        this.enterChat();
+    }
+
+    onChatMessage (msg) {
+        this.setState({ messages: msg });
+    }
+
+    enterChat () {
+        const { name }  = this.props;
+
+        socket.emit('chat update', [...this.state.messages, `${name} entered chat`]);
     }
 
     onEnterClick () {
+        const { name }  = this.props;
         const { input } = this.refs;
 
-        this.setState({ messages: [...this.state.messages, input.value] })
+        socket.emit('chat update', [...this.state.messages, `${name}: ${input.value}`]);
         input.value = '';
     }
 
     render () {
-        const { name } = this.props;
-
         let n = 0;
         return (
             <div className='chat-container'>
                 <ul ref='chat' className='chat'>
                     {this.state.messages.map(message => {
-                        return <li key={n++}>{`${name}: ${message}`}</li>
+                        return <li key={n++}>{message}</li>
                     })}
                 </ul>
                 <input ref='input' className='input' />
-                <TextButton onClick={()=>this.onEnterClick()}>Enter</TextButton>
+                <TextButton classes={['enter']} onClick={()=>this.onEnterClick()}>Enter</TextButton>
             </div>
         );
     }

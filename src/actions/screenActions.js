@@ -4,3 +4,7 @@ export const login = (name = '') => ({
     type: LOGIN,
     name
 });
+
+export const startGame = () => ({
+    type: START_GAME
+});
