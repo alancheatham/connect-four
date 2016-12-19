@@ -19,5 +19,6 @@ export default {
 	],
 	whiteToMove: false,
 	winner:      '',
-	winningPegs: []
+	winningPegs: [],
+	opponent:    ''
 };

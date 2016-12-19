@@ -23,6 +23,7 @@ var io   = require('socket.io')(http);
 var usernames = {};
 var usersInChat = [];
 var openGames = [];
+// var gameNumber = 0;
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -73,6 +74,11 @@ io.on('connection', function(socket){
     openGames.push(socket.id);
     io.emit('open games update', openGames.map(function (id) {
         return usernames[id];
+    }));
+    usersInChat.splice(usersInChat.indexOf(socket.id), 1);
+    io.emit('chat update', usernames[socket.id] + ' left chat');
+    io.emit('user chat update', usersInChat.map(function (id) {
+       return usernames[id]; 
     }));
   });
 });

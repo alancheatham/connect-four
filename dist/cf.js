@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "392805936091e6b61e78"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "37c5d24630383aee967a"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -8562,7 +8562,7 @@
 
 
 	// module
-	exports.push([module.id, "* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  font-size: 1em;\n  line-height: 1;\n}\nhtml,\nbody {\n  width: 100%;\n  height: 100%;\n}\ntextarea:focus,\ninput:focus,\nbutton:focus {\n  outline: none;\n}\n#app {\n  background: grey;\n  width: 100%;\n  height: 100%;\n}\n", ""]);
+	exports.push([module.id, "* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  font-size: 1em;\n  line-height: 1;\n}\nhtml,\nbody {\n  width: 100%;\n  height: 100%;\n}\ntextarea:focus,\ninput:focus,\nbutton:focus {\n  outline: none;\n}\n#app {\n  background: grey;\n  width: 100%;\n  height: 100%;\n  overflow: hidden;\n}\n", ""]);
 
 	// exports
 
@@ -32098,10 +32098,11 @@
 				var _props = this.props,
 				    board = _props.board,
 				    winner = _props.winner,
+				    opponent = _props.opponent,
 				    playMove = _props.playMove;
 
 
-				if (winner) return;
+				if (winner || !opponent) return;
 
 				if (board[id].length > 3) return;
 
@@ -32187,6 +32188,19 @@
 				);
 			}
 		}, {
+			key: 'renderOpponent',
+			value: function renderOpponent() {
+				var opponent = this.props.opponent;
+
+				var opponentText = opponent || 'Waiting for Opponent';
+
+				return _react2.default.createElement(
+					'div',
+					{ className: 'opponent' },
+					opponentText
+				);
+			}
+		}, {
 			key: 'render',
 			value: function render() {
 				var winner = this.props.winner;
@@ -32199,7 +32213,8 @@
 					'div',
 					{ className: 'game' },
 					this.renderGrid(),
-					winner ? this.renderGameEnd(winner) : null
+					winner ? this.renderGameEnd(winner) : null,
+					this.renderOpponent()
 				);
 			}
 		}]);
@@ -32211,7 +32226,8 @@
 		var _state$game = state.game,
 		    board = _state$game.board,
 		    winner = _state$game.winner,
-		    winningPegs = _state$game.winningPegs;
+		    winningPegs = _state$game.winningPegs,
+		    opponent = _state$game.opponent;
 
 
 		return { board: board, winner: winner, winningPegs: winningPegs };
@@ -35480,7 +35496,7 @@
 
 
 	// module
-	exports.push([module.id, ".game .grid {\n  padding: 100px;\n}\n.game .grid .row {\n  height: 150px;\n}\n.game .end {\n  position: absolute;\n  top: 200px;\n  left: 450px;\n}\n.game .end > .cf-text-button.winner-text > button {\n  font-size: 3em;\n  padding-bottom: 100px;\n  color: black;\n}\n.game .end > .cf-text-button.winner-text.white > button {\n  color: white;\n}\n.game .end > .cf-text-button.play-again > button {\n  font-size: 3em;\n  border-style: solid;\n  border-width: 2px;\n}\n", ""]);
+	exports.push([module.id, ".game > .grid {\n  padding: 100px;\n}\n.game > .grid > .row {\n  height: 150px;\n}\n.game > .end {\n  position: absolute;\n  top: 200px;\n  left: 450px;\n}\n.game > .end > .cf-text-button.winner-text > button {\n  font-size: 3em;\n  padding-bottom: 100px;\n  color: black;\n}\n.game > .end > .cf-text-button.winner-text.white > button {\n  color: white;\n}\n.game > .end > .cf-text-button.play-again > button {\n  font-size: 3em;\n  border-style: solid;\n  border-width: 2px;\n}\n.game > .opponent {\n  position: absolute;\n  top: 50px;\n  padding-left: 100px;\n  color: black;\n}\n", ""]);
 
 	// exports
 
@@ -36064,7 +36080,7 @@
 
 
 	            socket.emit('create game');
-	            // startGame();
+	            startGame();
 	        }
 	    }, {
 	        key: 'render',
@@ -36633,7 +36649,8 @@
 		board: [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
 		whiteToMove: false,
 		winner: '',
-		winningPegs: []
+		winningPegs: [],
+		opponent: ''
 	};
 
 

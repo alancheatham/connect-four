@@ -13,9 +13,9 @@ import { move, reset } from '../actions/gameActions';
 class Game extends Component {
 
 	onPegClick (id) {
-		const { board, winner, playMove } = this.props;
+		const { board, winner, opponent, playMove } = this.props;
 
-		if (winner) return;
+		if (winner || !opponent) return;
 
 		if (board[id].length > 3) return;
 
@@ -79,6 +79,13 @@ class Game extends Component {
 		);
 	}
 
+	renderOpponent () {
+		const { opponent } = this.props;
+		let opponentText = opponent || 'Waiting for Opponent';
+
+		return <div className='opponent'>{opponentText}</div>;
+	}
+
 	render () {
 		const { winner } = this.props;
 
@@ -89,6 +96,7 @@ class Game extends Component {
 			<div className='game'>
 				{this.renderGrid()}
 				{winner ? this.renderGameEnd(winner) : null}
+				{this.renderOpponent()}
 			</div>		
 		);
 	}
@@ -96,7 +104,7 @@ class Game extends Component {
 
 const GameContainer = connect(
 	state => {
-		const { board, winner, winningPegs } = state.game;
+		const { board, winner, winningPegs, opponent } = state.game;
 
 		return { board, winner, winningPegs };
 	},

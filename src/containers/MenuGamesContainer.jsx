@@ -46,7 +46,7 @@ class MenuGames extends Component {
         const { startGame } = this.props;
 
         socket.emit('create game');
-        // startGame();
+        startGame();
     }
 
     render () {
