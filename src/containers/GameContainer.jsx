@@ -118,6 +118,16 @@ class Game extends Component {
 		return <div className='opponent'>{opponentText}</div>;
 	}
 
+	renderYourTurn () {
+		const { whiteToMove } = this.props;
+		const { white }	 	  = this.state;
+
+		let turnText = 'Your Turn'
+		if (whiteToMove !== white) turnText = 'Opponent\'s turn';
+
+		return <div className='turn-text'>{turnText}</div>
+	}
+
 	render () {
 		const { winner } = this.props;
 
@@ -129,6 +139,7 @@ class Game extends Component {
 				{this.renderGrid()}
 				{winner ? this.renderGameEnd(winner) : null}
 				{this.renderOpponent()}
+				{this.renderYourTurn()}
 			</div>		
 		);
 	}

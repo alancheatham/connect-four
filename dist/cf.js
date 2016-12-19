@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "6214d56293ce7ffe5e3d"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "30bcb3e18da5c631be99"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -32244,6 +32244,22 @@
 				);
 			}
 		}, {
+			key: 'renderYourTurn',
+			value: function renderYourTurn() {
+				var whiteToMove = this.props.whiteToMove;
+				var white = this.state.white;
+
+
+				var turnText = 'Your Turn';
+				if (whiteToMove !== white) turnText = 'Opponent\'s turn';
+
+				return _react2.default.createElement(
+					'div',
+					{ className: 'turn-text' },
+					turnText
+				);
+			}
+		}, {
 			key: 'render',
 			value: function render() {
 				var winner = this.props.winner;
@@ -32257,7 +32273,8 @@
 					{ className: 'game' },
 					this.renderGrid(),
 					winner ? this.renderGameEnd(winner) : null,
-					this.renderOpponent()
+					this.renderOpponent(),
+					this.renderYourTurn()
 				);
 			}
 		}]);
@@ -35540,7 +35557,7 @@
 
 
 	// module
-	exports.push([module.id, ".game > .grid {\n  padding: 100px;\n}\n.game > .grid > .row {\n  height: 150px;\n}\n.game > .end {\n  position: absolute;\n  top: 200px;\n  left: 450px;\n}\n.game > .end > .cf-text-button.winner-text > button {\n  font-size: 3em;\n  padding-bottom: 100px;\n  color: black;\n}\n.game > .end > .cf-text-button.winner-text.white > button {\n  color: white;\n}\n.game > .end > .cf-text-button.play-again > button {\n  font-size: 3em;\n  border-style: solid;\n  border-width: 2px;\n}\n.game > .opponent {\n  position: absolute;\n  top: 50px;\n  padding-left: 100px;\n  color: black;\n}\n", ""]);
+	exports.push([module.id, ".game > .grid {\n  padding: 100px;\n}\n.game > .grid > .row {\n  height: 150px;\n}\n.game > .end {\n  position: absolute;\n  top: 200px;\n  left: 450px;\n}\n.game > .end > .cf-text-button.winner-text > button {\n  font-size: 3em;\n  padding-bottom: 100px;\n  color: black;\n}\n.game > .end > .cf-text-button.winner-text.white > button {\n  color: white;\n}\n.game > .end > .cf-text-button.play-again > button {\n  font-size: 3em;\n  border-style: solid;\n  border-width: 2px;\n}\n.game > .opponent {\n  position: absolute;\n  top: 50px;\n  padding-left: 100px;\n  color: black;\n}\n.game > .turn-text {\n  position: absolute;\n  top: 50px;\n  left: 250px;\n}\n", ""]);
 
 	// exports
 
