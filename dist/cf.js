@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "37c5d24630383aee967a"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "6214d56293ce7ffe5e3d"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -32083,30 +32083,73 @@
 
 	// components
 
+
+	// default state
+	var stateDefaults = {
+		opponent: '',
+		gameNumber: -1,
+		white: false
+	};
+
 	var Game = function (_Component) {
 		_inherits(Game, _Component);
 
-		function Game() {
+		function Game(props) {
 			_classCallCheck(this, Game);
 
-			return _possibleConstructorReturn(this, (Game.__proto__ || Object.getPrototypeOf(Game)).apply(this, arguments));
+			var _this = _possibleConstructorReturn(this, (Game.__proto__ || Object.getPrototypeOf(Game)).call(this, props));
+
+			socket.on('game started', function (game) {
+				return _this.gameStarted(game);
+			});
+			socket.on('move', function (game, id) {
+				return _this.moveReceived(game, id);
+			});
+			_this.state = stateDefaults;
+			return _this;
 		}
 
 		_createClass(Game, [{
+			key: 'gameStarted',
+			value: function gameStarted(game) {
+				var name = this.props.name;
+				var players = game.players,
+				    gameNumber = game.gameNumber;
+
+
+				if (name === players[0]) this.setState({ opponent: players[1], gameNumber: gameNumber, white: true });else if (name === players[1]) this.setState({ opponent: players[0], gameNumber: gameNumber, white: false });
+			}
+		}, {
+			key: 'moveReceived',
+			value: function moveReceived(game, id) {
+				var playMove = this.props.playMove;
+				var gameNumber = this.state.gameNumber;
+
+				if (gameNumber !== game) return;
+				playMove(id);
+			}
+		}, {
 			key: 'onPegClick',
 			value: function onPegClick(id) {
 				var _props = this.props,
 				    board = _props.board,
 				    winner = _props.winner,
-				    opponent = _props.opponent,
-				    playMove = _props.playMove;
+				    playMove = _props.playMove,
+				    whiteToMove = _props.whiteToMove;
+				var _state = this.state,
+				    opponent = _state.opponent,
+				    gameNumber = _state.gameNumber,
+				    white = _state.white;
 
+
+				if (white !== whiteToMove) return;
 
 				if (winner || !opponent) return;
 
 				if (board[id].length > 3) return;
 
-				playMove(id);
+				// playMove(id);
+				socket.emit('move', gameNumber, id);
 			}
 		}, {
 			key: 'resetGame',
@@ -32190,9 +32233,9 @@
 		}, {
 			key: 'renderOpponent',
 			value: function renderOpponent() {
-				var opponent = this.props.opponent;
+				var opponent = this.state.opponent;
 
-				var opponentText = opponent || 'Waiting for Opponent';
+				var opponentText = 'Opponent: ' + opponent || 'Waiting for Opponent';
 
 				return _react2.default.createElement(
 					'div',
@@ -32227,10 +32270,11 @@
 		    board = _state$game.board,
 		    winner = _state$game.winner,
 		    winningPegs = _state$game.winningPegs,
-		    opponent = _state$game.opponent;
+		    whiteToMove = _state$game.whiteToMove;
+		var name = state.user.name;
 
 
-		return { board: board, winner: winner, winningPegs: winningPegs };
+		return { board: board, winner: winner, winningPegs: winningPegs, name: name, whiteToMove: whiteToMove };
 	}, function (dispatch) {
 		return {
 			playMove: function playMove(id) {
@@ -36067,7 +36111,7 @@
 	                _react2.default.createElement(
 	                    _TextButton2.default,
 	                    { classes: ['join-game'], onClick: function onClick() {
-	                            return _this2.onJoinGameClicked();
+	                            return _this2.onJoinGameClicked(game);
 	                        } },
 	                    'Join'
 	                )
@@ -36080,6 +36124,15 @@
 
 
 	            socket.emit('create game');
+	            startGame();
+	        }
+	    }, {
+	        key: 'onJoinGameClicked',
+	        value: function onJoinGameClicked(game) {
+	            var startGame = this.props.startGame;
+
+
+	            socket.emit('join game', game);
 	            startGame();
 	        }
 	    }, {
@@ -36649,8 +36702,7 @@
 		board: [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
 		whiteToMove: false,
 		winner: '',
-		winningPegs: [],
-		opponent: ''
+		winningPegs: []
 	};
 
 

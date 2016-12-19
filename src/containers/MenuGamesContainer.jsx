@@ -37,7 +37,7 @@ class MenuGames extends Component {
         return (
             <li key={key}>
                 {game}
-                <TextButton classes={['join-game']} onClick={()=>this.onJoinGameClicked()}>Join</TextButton>
+                <TextButton classes={['join-game']} onClick={()=>this.onJoinGameClicked(game)}>Join</TextButton>
             </li>
         );
     }
@@ -46,6 +46,13 @@ class MenuGames extends Component {
         const { startGame } = this.props;
 
         socket.emit('create game');
+        startGame();
+    }
+
+    onJoinGameClicked (game) {
+        const { startGame } = this.props;
+        
+        socket.emit('join game', game);
         startGame();
     }
 

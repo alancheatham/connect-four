@@ -23,7 +23,8 @@ var io   = require('socket.io')(http);
 var usernames = {};
 var usersInChat = [];
 var openGames = [];
-// var gameNumber = 0;
+var currentGames = [];
+var gameNumber = 0;
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -65,21 +66,41 @@ io.on('connection', function(socket){
   });
 
   socket.on('get open games', function () {
-    io.sockets.connected[socket.id].emit('get open games', openGames.map(function (id) {
-        return usernames[id];
-    }));
+    io.sockets.connected[socket.id].emit('get open games', openGames);
   })
 
   socket.on('create game', function() {
-    openGames.push(socket.id);
-    io.emit('open games update', openGames.map(function (id) {
-        return usernames[id];
-    }));
+    openGames.push(usernames[socket.id]);
+    io.emit('open games update', openGames);
+
     usersInChat.splice(usersInChat.indexOf(socket.id), 1);
     io.emit('chat update', usernames[socket.id] + ' left chat');
     io.emit('user chat update', usersInChat.map(function (id) {
        return usernames[id]; 
     }));
+  });
+
+  socket.on('join game', function(name) {
+    openGames.splice(openGames.indexOf(name), 1);
+    io.emit('open games update', openGames);
+
+    usersInChat.splice(usersInChat.indexOf(socket.id), 1);
+    io.emit('chat update', usernames[socket.id] + ' left chat');
+    io.emit('user chat update', usersInChat.map(function (id) {
+       return usernames[id]; 
+    }));
+
+    var game = {
+        players: [ name, usernames[socket.id] ],
+        gameNumber: gameNumber++
+    };
+
+    currentGames.push(game);
+    setTimeout(function() {io.emit('game started', game)}, 100); // todo: make better
+  });
+
+  socket.on('move', function(game, id) {
+    io.emit('move', game, id);
   });
 });
 

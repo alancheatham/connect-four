@@ -10,16 +10,48 @@ import TextButton     from '../components/TextButton';
 
 import { move, reset } from '../actions/gameActions';
 
+// default state
+const stateDefaults = {
+	opponent: '',
+	gameNumber: -1,
+	white: false,
+};
+
 class Game extends Component {
+	constructor(props) {
+		super(props);
+		socket.on('game started', game => this.gameStarted(game));
+		socket.on('move', (game, id) => this.moveReceived(game, id));
+		this.state = stateDefaults;
+	}
+
+	gameStarted (game) {
+		const { name } = this.props;
+		const { players, gameNumber } = game;
+
+		if (name === players[0]) this.setState({ opponent: players[1], gameNumber, white: true });
+		else if (name === players[1]) this.setState({ opponent: players[0], gameNumber, white: false });
+	}
+
+	moveReceived (game, id) {
+		const { playMove } = this.props;
+		const { gameNumber } = this.state;
+		if (gameNumber !== game) return;
+		playMove(id)
+	}
 
 	onPegClick (id) {
-		const { board, winner, opponent, playMove } = this.props;
+		const { board, winner, playMove, whiteToMove } = this.props;
+		const { opponent, gameNumber, white } = this.state;
+
+		if (white !== whiteToMove) return;
 
 		if (winner || !opponent) return;
 
 		if (board[id].length > 3) return;
 
-		playMove(id);
+		// playMove(id);
+		socket.emit('move', gameNumber, id);
 	}
 
 	resetGame () {
@@ -80,8 +112,8 @@ class Game extends Component {
 	}
 
 	renderOpponent () {
-		const { opponent } = this.props;
-		let opponentText = opponent || 'Waiting for Opponent';
+		const { opponent } = this.state
+		let opponentText = `Opponent: ${opponent}` || 'Waiting for Opponent';
 
 		return <div className='opponent'>{opponentText}</div>;
 	}
@@ -104,9 +136,10 @@ class Game extends Component {
 
 const GameContainer = connect(
 	state => {
-		const { board, winner, winningPegs, opponent } = state.game;
+		const { board, winner, winningPegs, whiteToMove } = state.game;
+		const { name } = state.user;
 
-		return { board, winner, winningPegs };
+		return { board, winner, winningPegs, name, whiteToMove };
 	},
 	dispatch => ({
 		playMove:  id => dispatch(move(id)),
