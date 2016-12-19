@@ -22,6 +22,7 @@ var io   = require('socket.io')(http);
 
 var usernames = {};
 var usersInChat = [];
+var openGames = [];
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -42,9 +43,11 @@ io.on('connection', function(socket){
         }));
     }
   });
+
   socket.on('chat update', function(msg){
     io.emit('chat update', msg);
   });
+
   socket.on('user chat update', function(user, joined){
     if (joined) {
         usersInChat.push(socket.id);
@@ -57,6 +60,19 @@ io.on('connection', function(socket){
     }
     io.emit('user chat update', usersInChat.map(function (id) {
        return usernames[id]; 
+    }));
+  });
+
+  socket.on('get open games', function () {
+    io.sockets.connected[socket.id].emit('get open games', openGames.map(function (id) {
+        return usernames[id];
+    }));
+  })
+
+  socket.on('create game', function() {
+    openGames.push(socket.id);
+    io.emit('open games update', openGames.map(function (id) {
+        return usernames[id];
     }));
   });
 });

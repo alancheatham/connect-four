@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "13b4c59d7ee39708bc83"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "392805936091e6b61e78"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -35883,8 +35883,6 @@
 
 	var _Chat2 = _interopRequireDefault(_Chat);
 
-	var _screenActions = __webpack_require__(307);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -35900,9 +35898,6 @@
 
 
 	// components
-
-
-	// actions
 
 	var Menu = function (_Component) {
 	    _inherits(Menu, _Component);
@@ -35990,6 +35985,8 @@
 
 	var _TextButton2 = _interopRequireDefault(_TextButton);
 
+	var _screenActions = __webpack_require__(307);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -36003,37 +36000,97 @@
 
 	// components
 
+
+	// actions
+
+
+	// default state
+	var defaultState = {
+	    games: []
+	};
+
 	var MenuGames = function (_Component) {
 	    _inherits(MenuGames, _Component);
 
-	    function MenuGames() {
+	    function MenuGames(props) {
 	        _classCallCheck(this, MenuGames);
 
-	        return _possibleConstructorReturn(this, (MenuGames.__proto__ || Object.getPrototypeOf(MenuGames)).apply(this, arguments));
+	        var _this = _possibleConstructorReturn(this, (MenuGames.__proto__ || Object.getPrototypeOf(MenuGames)).call(this, props));
+
+	        _this.state = defaultState;
+
+	        socket.emit('get open games');
+	        socket.on('get open games', function (games) {
+	            return _this.populateGames(games);
+	        });
+	        socket.on('open games update', function (games) {
+	            return _this.updateOpenGames(games);
+	        });
+	        return _this;
 	    }
 
 	    _createClass(MenuGames, [{
+	        key: 'populateGames',
+	        value: function populateGames(games) {
+	            this.setState({ games: games });
+	        }
+	    }, {
+	        key: 'updateOpenGames',
+	        value: function updateOpenGames(games) {
+	            this.setState({ games: games });
+	        }
+	    }, {
+	        key: 'renderGame',
+	        value: function renderGame(game, key) {
+	            var _this2 = this;
+
+	            return _react2.default.createElement(
+	                'li',
+	                { key: key },
+	                game,
+	                _react2.default.createElement(
+	                    _TextButton2.default,
+	                    { classes: ['join-game'], onClick: function onClick() {
+	                            return _this2.onJoinGameClicked();
+	                        } },
+	                    'Join'
+	                )
+	            );
+	        }
+	    }, {
 	        key: 'onStartGameClick',
 	        value: function onStartGameClick() {
 	            var startGame = this.props.startGame;
 
 
-	            startGame();
+	            socket.emit('create game');
+	            // startGame();
 	        }
 	    }, {
 	        key: 'render',
 	        value: function render() {
-	            var _this2 = this;
+	            var _this3 = this;
 
+	            var games = this.state.games;
+
+
+	            var n = 0;
 	            return _react2.default.createElement(
 	                'div',
 	                { className: 'menu-games-container' },
 	                _react2.default.createElement(
 	                    _TextButton2.default,
 	                    { classes: ['create-game'], onClick: function onClick() {
-	                            return _this2.onStartGameClick();
+	                            return _this3.onStartGameClick();
 	                        } },
 	                    'Create Game'
+	                ),
+	                _react2.default.createElement(
+	                    'ul',
+	                    { className: 'game-list' },
+	                    games.map(function (game) {
+	                        return _this3.renderGame(game, n++);
+	                    })
 	                )
 	            );
 	        }
@@ -36044,19 +36101,9 @@
 
 	var MenuGamesContainer = (0, _reactRedux.connect)(null, function (dispatch) {
 	    return {
-	        startGame: function (_startGame) {
-	            function startGame() {
-	                return _startGame.apply(this, arguments);
-	            }
-
-	            startGame.toString = function () {
-	                return _startGame.toString();
-	            };
-
-	            return startGame;
-	        }(function () {
-	            return dispatch(startGame());
-	        })
+	        startGame: function startGame() {
+	            return dispatch((0, _screenActions.startGame)());
+	        }
 	    };
 	})(MenuGames);
 
@@ -36117,7 +36164,7 @@
 
 
 	// module
-	exports.push([module.id, ".menu-games-container {\n  display: inline-block;\n  width: 40%;\n  position: absolute;\n}\n.menu-games-container > .create-game {\n  top: 100px;\n}\n", ""]);
+	exports.push([module.id, ".menu-games-container {\n  display: inline-block;\n  width: 40%;\n  position: absolute;\n}\n.menu-games-container > .create-game {\n  top: 100px;\n}\n.menu-games-container > .game-list {\n  list-style: none;\n}\n.menu-games-container > .game-list li > .join-game {\n  display: inline-block;\n}\n", ""]);
 
 	// exports
 

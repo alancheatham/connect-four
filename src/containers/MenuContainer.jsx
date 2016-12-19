@@ -11,9 +11,6 @@ import MenuGamesContainer from './MenuGamesContainer';
 import TextButton from '../components/TextButton';
 import Chat       from '../components/Chat'
 
-// actions
-import { startGame } from '../actions/screenActions';
-
 class Menu extends Component {
 
     onStartGameClick () {
