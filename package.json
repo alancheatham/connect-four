@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "karma start",
-    "dev": "webpack-dev-server --inline --hot",
+    "dev": "nodemon --ignore ./dist --exec 'npm run build' --ext '*' & node server.js",
     "build": "webpack",
     "prettier": "prettier"
   },
