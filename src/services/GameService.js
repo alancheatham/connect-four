@@ -1,359 +1,361 @@
-import { gameWon } from '../actions/gameActions';
+import { gameWon } from '../actions/gameActions'
 
 class GameService {
-    constructor (sandbox) {
-        this.$ = sandbox;
+  constructor(sandbox) {
+    this.$ = sandbox
 
-        this.initListeners();
-    }
+    this.initListeners()
+  }
 
-    initListeners () {
-        const { $ } = this;
-        $.store.subscribe(() => this.handleStateChange());
-    }
+  initListeners() {
+    const { $ } = this
+    $.store.subscribe(() => this.handleStateChange())
+  }
 
-    handleStateChange () {
-        const { $ }  = this;
+  handleStateChange() {
+    const { $ } = this
 
-        if ($.isGameOver) return;
+    if ($.isGameOver) return
 
-        const winnerInfo = this.checkIfGameWon();
+    const winnerInfo = this.checkIfGameWon()
 
-        if (!winnerInfo) return;
+    if (!winnerInfo) return
 
-        $.store.dispatch(gameWon(winnerInfo));
-    }
+    $.store.dispatch(gameWon(winnerInfo))
+  }
 
-    checkIfGameWon () {
-        let winner = '';
+  checkIfGameWon() {
+    let winner = ''
 
-        // same level
-        winner = this.checkHorizontalPlanes();
-        if (winner) return winner;
+    // same level
+    winner = this.checkHorizontalPlanes()
+    if (winner) return winner
 
-        winner = this.checkVerticalPlanes();
-        if (winner) return winner;
+    winner = this.checkVerticalPlanes()
+    if (winner) return winner
 
-        winner = this.checkDiagonalPlanes();
-        if (winner) return winner;
+    winner = this.checkDiagonalPlanes()
+    if (winner) return winner
 
-        // multi level
-        winner = this.checkVerticalPegs();
-        if (winner) return winner;
+    // multi level
+    winner = this.checkVerticalPegs()
+    if (winner) return winner
 
-        winner = this.checkHorizontalStairs();
-        if (winner) return winner;
+    winner = this.checkHorizontalStairs()
+    if (winner) return winner
 
-        winner = this.checkVerticalStairs();
-        if (winner) return winner;
+    winner = this.checkVerticalStairs()
+    if (winner) return winner
 
-        winner = this.checkDiagonalStairs();
-        return winner;
-    }
+    winner = this.checkDiagonalStairs()
+    return winner
+  }
 
-    fourInARowHelper (currentBead, potentialWin, iteration) {
-        if (!currentBead) {
-            return false;
+  fourInARowHelper(currentBead, potentialWin, iteration) {
+    if (!currentBead) {
+      return false
+    } else if (iteration === 0) {
+      potentialWin.push(currentBead)
+    } else {
+      if (currentBead === potentialWin[iteration - 1]) {
+        if (iteration === 3) {
+          // game over
+          return currentBead // 'W' or 'B'
         }
-
-        else if (iteration === 0) {
-            potentialWin.push(currentBead);
-        }
-
-        else {
-            if (currentBead === potentialWin[iteration - 1]) {
-                if (iteration === 3) {
-                    // game over 
-                    return currentBead; // 'W' or 'B'
-                }
-                potentialWin.push(currentBead);
-            }
-
-            else {
-                return false;
-            }
-        }
+        potentialWin.push(currentBead)
+      } else {
+        return false
+      }
     }
+  }
 
-    checkHorizontalPlanes () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
+  checkHorizontalPlanes() {
+    const { $ } = this
+    const { board } = $.store.getState().game
 
-        let potentialWin = [];
+    let potentialWin = []
 
-        // z axis
-        for (let z = 0; z < 4; z++) {
-
-            // y axis
-            for (let y = 0; y < 4; y++) {
-
-                // x axis
-                for (let x = 0; x < 4; x++) {
-                    const currentPeg  = (y * 4) + x;
-                    const currentBead = board[currentPeg][z];
-
-                    const winner = this.fourInARowHelper(currentBead, potentialWin, x);
-                    if (winner) {
-                        return {
-                            winner,
-                            winningPegs: [currentPeg, currentPeg - 1, currentPeg - 2, currentPeg - 3]
-                        }
-                    }
-
-                    else if (winner === false) {
-                        potentialWin = [];
-                    }
-                }
-            }
-        }
-    }
-
-    checkVerticalPlanes () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
-
-        let potentialWin = [];
-
-        // z axis
-        for (let z = 0; z < 4; z++) {
-
-            // x axis
-            for (let x = 0; x < 4; x++) {
-
-                // x axis
-                for (let y = 0; y < 4; y++) {
-                    const currentPeg  = (y * 4) + x;
-                    const currentBead = board[currentPeg][z];
-
-                    const winner = this.fourInARowHelper(currentBead, potentialWin, y);
-                    if (winner) {
-                        return {
-                            winner,
-                            winningPegs: [currentPeg, currentPeg - 4, currentPeg - 8, currentPeg - 12]
-                        }
-                    }
-
-                    else if (winner === false) {
-                        potentialWin = [];
-                    }
-                }
-            }
-        }
-    }
-
-    checkDiagonalPlanes () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
-
-        let potentialWin = [];
-
-        // z axis
-        for (let z = 0; z < 4; z++) {
-
-            // diagonal one
-            for (let d1 = 0; d1 < 4; d1++) {
-                const currentPeg  = d1 * 5;
-                const currentBead = board[currentPeg][z];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, d1);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [0, 5, 10, 15]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
-
-            // diagonal two
-            for (let d2 = 0; d2 < 4; d2++) {
-                const currentPeg  = (d2 * 3) + 3;
-                const currentBead = board[currentPeg][z];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, d2);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [3, 6, 9, 12]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
-        }
-    }
-
-    checkVerticalPegs () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
-
-        let potentialWin = [];
-
-        // y axis
-        for (let y = 0; y < 4; y++) {
-
-            // x axis
-            for (let x = 0; x < 4; x++) {
-
-                // z axis
-                for (let z = 0; z < 4; z++) {
-                    const currentPeg  = (y * 4) + x;
-                    const currentBead = board[currentPeg][z];
-
-                    const winner = this.fourInARowHelper(currentBead, potentialWin, z);
-                    if (winner) {
-                        return {
-                            winner,
-                            winningPegs: [currentPeg]
-                        }
-                    }
-                    else if (winner === false) {
-                        potentialWin = [];
-                    }
-                }
-            }
-        }
-    }
-
-    checkHorizontalStairs () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
-
-        let potentialWin = [];
-
-        // y axis
-        for (let y = 0; y < 4; y++) {
-            
-            // left to right 
-            for (let lr = 0; lr < 4; lr++) {
-                const currentPeg  = (y * 4) + lr;
-                const currentBead = board[currentPeg][lr];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, lr);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [currentPeg, currentPeg - 1, currentPeg - 2, currentPeg - 3]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
-
-            // right to left
-            for (let rl = 0; rl < 4; rl++) {
-                const currentPeg  = (y * 4) + rl;
-                const currentBead = board[currentPeg][3 - rl];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, rl);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [currentPeg, currentPeg - 1, currentPeg - 2, currentPeg - 3]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
-        }
-    }
-
-    checkVerticalStairs () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
-
-        let potentialWin = [];
-
+    // z axis
+    for (let z = 0; z < 4; z++) {
+      // y axis
+      for (let y = 0; y < 4; y++) {
         // x axis
         for (let x = 0; x < 4; x++) {
-            
-            // up to down
-            for (let ud = 0; ud < 4; ud++) {
-                const currentPeg  = (ud * 4) + x;
-                const currentBead = board[currentPeg][ud];
+          const currentPeg = y * 4 + x
+          const currentBead = board[currentPeg][z]
 
-                const winner = this.fourInARowHelper(currentBead, potentialWin, ud);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [currentPeg, currentPeg - 4, currentPeg - 8, currentPeg - 12]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
+          const winner = this.fourInARowHelper(currentBead, potentialWin, x)
+          if (winner) {
+            return {
+              winner,
+              winningPegs: [
+                currentPeg,
+                currentPeg - 1,
+                currentPeg - 2,
+                currentPeg - 3,
+              ],
             }
-
-            // down to up
-            for (let du = 0; du < 4; du++) {
-                const currentPeg  = (du * 4) + x;
-                const currentBead = board[currentPeg][3 - du];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, du);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [currentPeg, currentPeg - 4, currentPeg - 8, currentPeg - 12]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
+          } else if (winner === false) {
+            potentialWin = []
+          }
         }
+      }
+    }
+  }
+
+  checkVerticalPlanes() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // z axis
+    for (let z = 0; z < 4; z++) {
+      // x axis
+      for (let x = 0; x < 4; x++) {
+        // x axis
+        for (let y = 0; y < 4; y++) {
+          const currentPeg = y * 4 + x
+          const currentBead = board[currentPeg][z]
+
+          const winner = this.fourInARowHelper(currentBead, potentialWin, y)
+          if (winner) {
+            return {
+              winner,
+              winningPegs: [
+                currentPeg,
+                currentPeg - 4,
+                currentPeg - 8,
+                currentPeg - 12,
+              ],
+            }
+          } else if (winner === false) {
+            potentialWin = []
+          }
+        }
+      }
+    }
+  }
+
+  checkDiagonalPlanes() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // z axis
+    for (let z = 0; z < 4; z++) {
+      // diagonal one
+      for (let d1 = 0; d1 < 4; d1++) {
+        const currentPeg = d1 * 5
+        const currentBead = board[currentPeg][z]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, d1)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [0, 5, 10, 15],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+
+      // diagonal two
+      for (let d2 = 0; d2 < 4; d2++) {
+        const currentPeg = d2 * 3 + 3
+        const currentBead = board[currentPeg][z]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, d2)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [3, 6, 9, 12],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+    }
+  }
+
+  checkVerticalPegs() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // y axis
+    for (let y = 0; y < 4; y++) {
+      // x axis
+      for (let x = 0; x < 4; x++) {
+        // z axis
+        for (let z = 0; z < 4; z++) {
+          const currentPeg = y * 4 + x
+          const currentBead = board[currentPeg][z]
+
+          const winner = this.fourInARowHelper(currentBead, potentialWin, z)
+          if (winner) {
+            return {
+              winner,
+              winningPegs: [currentPeg],
+            }
+          } else if (winner === false) {
+            potentialWin = []
+          }
+        }
+      }
+    }
+  }
+
+  checkHorizontalStairs() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // y axis
+    for (let y = 0; y < 4; y++) {
+      // left to right
+      for (let lr = 0; lr < 4; lr++) {
+        const currentPeg = y * 4 + lr
+        const currentBead = board[currentPeg][lr]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, lr)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [
+              currentPeg,
+              currentPeg - 1,
+              currentPeg - 2,
+              currentPeg - 3,
+            ],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+
+      // right to left
+      for (let rl = 0; rl < 4; rl++) {
+        const currentPeg = y * 4 + rl
+        const currentBead = board[currentPeg][3 - rl]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, rl)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [
+              currentPeg,
+              currentPeg - 1,
+              currentPeg - 2,
+              currentPeg - 3,
+            ],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+    }
+  }
+
+  checkVerticalStairs() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // x axis
+    for (let x = 0; x < 4; x++) {
+      // up to down
+      for (let ud = 0; ud < 4; ud++) {
+        const currentPeg = ud * 4 + x
+        const currentBead = board[currentPeg][ud]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, ud)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [
+              currentPeg,
+              currentPeg - 4,
+              currentPeg - 8,
+              currentPeg - 12,
+            ],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+
+      // down to up
+      for (let du = 0; du < 4; du++) {
+        const currentPeg = du * 4 + x
+        const currentBead = board[currentPeg][3 - du]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, du)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [
+              currentPeg,
+              currentPeg - 4,
+              currentPeg - 8,
+              currentPeg - 12,
+            ],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
+    }
+  }
+
+  checkDiagonalStairs() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    let potentialWin = []
+
+    // diagonal one
+    for (let rl = 0; rl < 2; rl++) {
+      for (let d1 = 0; d1 < 4; d1++) {
+        const currentPeg = d1 * 5
+        const currentBead =
+          rl === 0 ? board[currentPeg][3 - d1] : board[currentPeg][d1]
+
+        const winner = this.fourInARowHelper(currentBead, potentialWin, d1)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [0, 5, 10, 15],
+          }
+        } else if (winner === false) {
+          potentialWin = []
+        }
+      }
     }
 
-    checkDiagonalStairs () {
-        const { $ }     = this;
-        const { board } = $.store.getState().game;
+    // diagonal two
+    for (let rl = 0; rl < 2; rl++) {
+      for (let d2 = 0; d2 < 4; d2++) {
+        const currentPeg = d2 * 3 + 3
+        const currentBead =
+          rl === 0 ? board[currentPeg][3 - d2] : board[currentPeg][d2]
 
-        let potentialWin = [];
-
-        // diagonal one
-        for (let rl = 0; rl < 2; rl++) {
-
-            for (let d1 = 0; d1 < 4; d1++) {
-                const currentPeg  = d1 * 5;
-                const currentBead = (rl === 0) ? board[currentPeg][3 - d1] : board[currentPeg][d1];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, d1);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [0, 5, 10, 15]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
+        const winner = this.fourInARowHelper(currentBead, potentialWin, d2)
+        if (winner) {
+          return {
+            winner,
+            winningPegs: [3, 6, 9, 12],
+          }
+        } else if (winner === false) {
+          potentialWin = []
         }
-
-        // diagonal two
-        for (let rl = 0; rl < 2; rl++) {
-
-            for (let d2 = 0; d2 < 4; d2++) {
-                const currentPeg  = (d2 * 3) + 3;
-                const currentBead = (rl === 0) ? board[currentPeg][3 - d2] : board[currentPeg][d2];
-
-                const winner = this.fourInARowHelper(currentBead, potentialWin, d2);
-                if (winner) {
-                    return {
-                        winner,
-                        winningPegs: [3, 6, 9, 12]
-                    }
-                }
-                else if (winner === false) {
-                    potentialWin = [];
-                }
-            }
-        }
+      }
     }
+  }
 }
 
-export default GameService;
+export default GameService

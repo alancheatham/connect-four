@@ -1,0 +1,9 @@
+{
+	"prettier.useTabs": false,
+	"prettier.trailingComma": "all",
+	"prettier.arrayExpand": true,
+	"prettier.spaceBeforeFunctionParen": true,
+	"prettier.printWidth": 80,
+	"prettier.arrowParens": false,
+	"editor.formatOnSave": true,
+}

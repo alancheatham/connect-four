@@ -21,7 +21,7 @@ const ConnectFourPeg = ({
 
 	const className = cn(['peg'], { loser });
 	
-	let n = 0;
+	let n = 0; 
 	const renderBeads = [];
 
 	for (let i = 0; i < beads.length; i++) {

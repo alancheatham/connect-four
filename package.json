@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "Connect Four Game",
   "main": "index.js",
+  "scripts": {
+    "test": "karma start",
+    "dev": "webpack-dev-server --inline --hot",
+    "build": "webpack",
+    "prettier": "prettier"
+  },
   "dependencies": {
     "babel-loader": "^6.2.5",
     "babel-polyfill": "^6.13.0",
@@ -11,6 +17,8 @@
     "classnames": "^2.2.5",
     "express": "^4.14.0",
     "less": "^2.7.1",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.1",
     "react": "^15.3.1",
     "react-dom": "^15.3.1",
     "react-hammerjs": "^0.5.0",
@@ -41,9 +49,6 @@
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.15.1"
-  },
-  "scripts": {
-    "test": "karma start"
   },
   "author": "Alan Cheatham",
   "license": "ISC"
