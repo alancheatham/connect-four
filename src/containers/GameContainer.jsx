@@ -8,7 +8,13 @@ import { connect } from 'react-redux'
 import ConnectFourPeg from '../components/ConnectFourPeg'
 import TextButton from '../components/TextButton'
 
-import { move, reset } from '../actions/gameActions'
+import {
+  move,
+  reset,
+  setBoard,
+  resetWinner,
+  setWhiteToMove,
+} from '../actions/gameActions'
 
 // default state
 const stateDefaults = {
@@ -16,6 +22,12 @@ const stateDefaults = {
   gameNumber: -1,
   white: false,
   solo: false,
+}
+
+const scores = {
+  W: 1,
+  B: -1,
+  tie: 0,
 }
 
 class Game extends Component {
@@ -36,7 +48,6 @@ class Game extends Component {
   gameStarted(game) {
     const { name = 'You' } = this.props
     const { players, gameNumber } = game
-    console.log('props', this.props, 'game', game)
 
     if (name === players[0])
       this.setState({ opponent: players[1], gameNumber, white: true })
@@ -49,23 +60,99 @@ class Game extends Component {
     if (gameNumber !== game) return
     playMove(id)
   }
-  computerMove() {
-    const { playMove } = this.props
+  minimax(depth, isMaximizingPlayer) {
+    const { winner, board, playMove, setBoard, resetWinner, setWhiteToMove } =
+      this.props
 
-    playMove(0)
+    if (winner) {
+      return scores[winner]
+    }
+
+    if (depth > 4) {
+      return 0
+    }
+
+    if (isMaximizingPlayer) {
+      let bestScore = -Infinity
+      for (let i = 0; i < 4; i++) {
+        // available?
+        if (board[i].length === 4) {
+          continue
+        }
+
+        let oldBoard = [...board]
+        playMove(i)
+        let score = this.minimax(depth + 1, false)
+        setBoard(oldBoard)
+        resetWinner()
+        setWhiteToMove(true)
+        bestScore = Math.max(score, bestScore)
+      }
+
+      return bestScore
+    } else {
+      let bestScore = Infinity
+      for (let i = 0; i < 4; i++) {
+        // available?
+        if (this.props.board[i].length === 4) {
+          continue
+        }
+
+        let oldBoard = [...board]
+        playMove(i)
+        let score = this.minimax(depth + 1, true)
+        setBoard(oldBoard)
+        resetWinner()
+        setWhiteToMove(false)
+        bestScore = Math.min(score, bestScore)
+      }
+      return bestScore
+    }
+  }
+  bestMove() {
+    const { playMove, setBoard, winner, resetWinner, board, setWhiteToMove } =
+      this.props
+
+    if (winner) return
+    let bestScore = -Infinity
+    let move
+    let aboutToLose = false
+
+    for (let i = 0; i < 4; i++) {
+      // available?
+      if (this.props.board[i].length === 4) {
+        continue
+      }
+
+      let oldBoard = [...board]
+      playMove(i)
+      let score = this.minimax(0, false)
+      setBoard(oldBoard)
+      resetWinner()
+      setWhiteToMove(true)
+
+      if (score === -1) {
+        aboutToLose = true
+      }
+
+      if (score > bestScore) {
+        bestScore = score
+        move = i
+      }
+    }
+
+    if (bestScore === 0 && !aboutToLose) {
+      // random move
+      const availablePegs = [0, 1, 2, 3].filter((i) => board[i].length < 4)
+      const index = Math.floor(Math.random() * availablePegs.length)
+      move = availablePegs[index]
+    }
+
+    playMove(move)
   }
   onPegClick(id) {
     const { board, winner, playMove, whiteToMove } = this.props
     const { opponent, gameNumber, white, solo } = this.state
-    console.log(
-      'everytin',
-      board,
-      winner,
-      whiteToMove,
-      opponent,
-      gameNumber,
-      white,
-    )
 
     // if (white !== whiteToMove) return
 
@@ -75,7 +162,7 @@ class Game extends Component {
 
     if (solo) {
       playMove(id)
-      setTimeout(() => this.computerMove(), 1000)
+      setTimeout(() => this.bestMove(), 100)
       return
     } else {
       socket.emit('move', gameNumber, id)
@@ -123,8 +210,10 @@ class Game extends Component {
     if (winner === 'W') {
       winnerText = 'White wins!'
       winnerTextClasses.push('white')
-    } else {
+    } else if (winner === 'B') {
       winnerText = 'Black wins!'
+    } else {
+      winnerText = 'Tie!'
     }
     return (
       <div className="end">
@@ -177,6 +266,9 @@ const GameContainer = connect(
   (dispatch) => ({
     playMove: (id) => dispatch(move(id)),
     resetGame: () => dispatch(reset()),
+    setBoard: (board) => dispatch(setBoard(board)),
+    resetWinner: () => dispatch(resetWinner()),
+    setWhiteToMove: (whiteToMove) => dispatch(setWhiteToMove(whiteToMove)),
   }),
 )(Game)
 

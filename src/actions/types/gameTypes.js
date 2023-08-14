@@ -1,3 +1,6 @@
-export const MOVE     = 'MOVE'  
-export const GAME_WON = 'GAME_WON';
-export const RESET    = 'RESET';
+export const MOVE = 'MOVE'
+export const GAME_WON = 'GAME_WON'
+export const RESET = 'RESET'
+export const SET_BOARD = 'SET_BOARD'
+export const RESET_WINNER = 'RESET_WINNER'
+export const SET_WHITE_TO_MOVE = 'SET_WHITE_TO_MOVE'

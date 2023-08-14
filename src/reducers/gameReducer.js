@@ -1,6 +1,13 @@
 import defaults from './defaults/gameDefaults'
 
-import { MOVE, GAME_WON, RESET } from '../actions/types/gameTypes'
+import {
+  MOVE,
+  GAME_WON,
+  RESET,
+  SET_BOARD,
+  RESET_WINNER,
+  SET_WHITE_TO_MOVE,
+} from '../actions/types/gameTypes'
 
 // lower level reducer
 import pegReducer from './gameReducer/pegReducer'
@@ -28,6 +35,15 @@ const gameReducer = (state = defaults, action = { type: false }) => {
 
     case RESET:
       return defaults
+
+    case SET_BOARD:
+      return Object.assign({}, state, { board: payload.board })
+
+    case RESET_WINNER:
+      return Object.assign({}, state, { winner: '', winningPegs: [] })
+
+    case SET_WHITE_TO_MOVE:
+      return Object.assign({}, state, { whiteToMove: payload.whiteToMove })
 
     default:
       return state

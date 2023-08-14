@@ -48,7 +48,29 @@ class GameService {
     if (winner) return winner
 
     winner = this.checkDiagonalStairs()
+    if (winner) return winner
+
+    if (this.checkIfBoardFull()) {
+      return {
+        winner: 'tie',
+        winningPegs: [],
+      }
+    }
+
     return winner
+  }
+
+  checkIfBoardFull() {
+    const { $ } = this
+    const { board } = $.store.getState().game
+
+    for (let i = 0; i < 4; i++) {
+      if (board[i].length < 4) {
+        return false
+      }
+    }
+
+    return true
   }
 
   fourInARowHelper(currentBead, potentialWin, iteration) {
