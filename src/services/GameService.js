@@ -52,7 +52,7 @@ class GameService {
 
     if (this.checkIfBoardFull()) {
       return {
-        winner: 'tie',
+        winner: 'draw',
         winningPegs: [],
       }
     }
@@ -64,7 +64,7 @@ class GameService {
     const { $ } = this
     const { board } = $.store.getState().game
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 16; i++) {
       if (board[i].length < 4) {
         return false
       }

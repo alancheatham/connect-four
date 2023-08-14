@@ -27,7 +27,7 @@ const stateDefaults = {
 const scores = {
   W: 1,
   B: -1,
-  tie: 0,
+  draw: 0,
 }
 
 class Game extends Component {
@@ -68,13 +68,13 @@ class Game extends Component {
       return scores[winner]
     }
 
-    if (depth > 4) {
+    if (depth > 1) {
       return 0
     }
 
     if (isMaximizingPlayer) {
       let bestScore = -Infinity
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 16; i++) {
         // available?
         if (board[i].length === 4) {
           continue
@@ -92,7 +92,7 @@ class Game extends Component {
       return bestScore
     } else {
       let bestScore = Infinity
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 16; i++) {
         // available?
         if (this.props.board[i].length === 4) {
           continue
@@ -118,7 +118,7 @@ class Game extends Component {
     let move
     let aboutToLose = false
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 16; i++) {
       // available?
       if (this.props.board[i].length === 4) {
         continue
@@ -143,7 +143,9 @@ class Game extends Component {
 
     if (bestScore === 0 && !aboutToLose) {
       // random move
-      const availablePegs = [0, 1, 2, 3].filter((i) => board[i].length < 4)
+      const availablePegs = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ].filter((i) => board[i].length < 4)
       const index = Math.floor(Math.random() * availablePegs.length)
       move = availablePegs[index]
     }
@@ -198,7 +200,7 @@ class Game extends Component {
   }
   renderGrid() {
     const rows = []
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 4; i++) {
       rows.push(this.renderRow())
     }
     return <div className="grid">{rows}</div>
@@ -213,7 +215,7 @@ class Game extends Component {
     } else if (winner === 'B') {
       winnerText = 'Black wins!'
     } else {
-      winnerText = 'Tie!'
+      winnerText = 'Draw!'
     }
     return (
       <div className="end">
