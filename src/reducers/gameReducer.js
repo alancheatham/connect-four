@@ -16,15 +16,17 @@ const gameReducer = (state = defaults, action = { type: false }) => {
   const { type, ...payload } = action
   switch (type) {
     case MOVE:
+      const board = [
+        ...state.board.slice(0, payload.id),
+        pegReducer(state.board[payload.id], action, state.whiteToMove),
+        ...state.board.slice(payload.id + 1),
+      ]
       return Object.assign(
         {},
         state,
         {
-          board: [
-            ...state.board.slice(0, payload.id),
-            pegReducer(state.board[payload.id], action, state.whiteToMove),
-            ...state.board.slice(payload.id + 1),
-          ],
+          board,
+          moves: [...state.moves, board],
         },
         { whiteToMove: !state.whiteToMove },
       )

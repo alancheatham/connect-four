@@ -1,23 +1,7 @@
 export default {
-	board: [
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[]
-	],
-	whiteToMove: false,
-	winner:      '',
-	winningPegs: []
-};
+  board: [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
+  moves: [],
+  whiteToMove: false,
+  winner: '',
+  winningPegs: [],
+}

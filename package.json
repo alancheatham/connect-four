@@ -7,7 +7,7 @@
     "test": "karma start",
     "dev": "nodemon --ignore ./dist --exec 'npm run build' --ext '*' & node server.js",
     "build": "webpack",
-    "prettier": "prettier"
+    "prettier": "prettier src"
   },
   "dependencies": {
     "babel-loader": "^6.2.5",

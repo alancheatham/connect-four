@@ -1,4 +1,6 @@
-import { gameWon } from '../actions/gameActions'
+import { gameWon, move } from '../actions/gameActions'
+
+const qValues = JSON.parse(localStorage.getItem('qValues') || '{}')
 
 class GameService {
   constructor(sandbox) {
@@ -12,6 +14,47 @@ class GameService {
     $.store.subscribe(() => this.handleStateChange())
   }
 
+  bestMove() {
+    const { board, whiteToMove } = this.$.store.getState().game
+
+    const availablePegs = [
+      0,
+      1,
+      2,
+      3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ].filter((i) => board[i].length < 4)
+
+    const index = Math.floor(Math.random() * availablePegs.length)
+    let nextMove = availablePegs[index]
+    const newBoard = JSON.parse(JSON.stringify(board.slice(0, 4)))
+
+    // look up q value for possible moves
+    if (Math.random() > 0.5) {
+      let bestQ = 0
+      for (const peg of availablePegs) {
+        let newestBoard = JSON.parse(JSON.stringify(newBoard))
+        newestBoard[peg].push(whiteToMove ? 'W' : 'B')
+        const qValue = qValues[JSON.stringify(newestBoard)]
+        if (isNaN(qValue)) {
+          continue
+        }
+        console.log('found!', qValue, newestBoard)
+        if (whiteToMove) {
+          if (qValue < bestQ) {
+            bestQ = qValue
+            nextMove = peg
+          }
+        } else {
+          if (qValue > bestQ) {
+            bestQ = qValue
+            nextMove = peg
+          }
+        }
+      }
+    }
+    this.$.store.dispatch(move(move))
+  }
+
   handleStateChange() {
     const { $ } = this
 
@@ -19,9 +62,13 @@ class GameService {
 
     const winnerInfo = this.checkIfGameWon()
 
-    if (!winnerInfo) return
+    if (winnerInfo) {
+      $.store.dispatch(gameWon(winnerInfo))
+    }
 
-    $.store.dispatch(gameWon(winnerInfo))
+    setTimeout(() => {
+      this.bestMove()
+    }, 100)
   }
 
   checkIfGameWon() {
@@ -64,7 +111,7 @@ class GameService {
     const { $ } = this
     const { board } = $.store.getState().game
 
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 4; i++) {
       if (board[i].length < 4) {
         return false
       }

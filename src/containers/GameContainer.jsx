@@ -16,12 +16,17 @@ import {
   setWhiteToMove,
 } from '../actions/gameActions'
 
+let counter = 0
+
 // default state
 const stateDefaults = {
   opponent: '',
   gameNumber: -1,
   white: false,
   solo: false,
+  qValues: JSON.parse(localStorage.getItem('qValues') || '{}'),
+  mounted: false,
+  minimax: false,
 }
 
 const scores = {
@@ -68,13 +73,13 @@ class Game extends Component {
       return scores[winner]
     }
 
-    if (depth > 1) {
+    if (depth > 4) {
       return 0
     }
 
     if (isMaximizingPlayer) {
       let bestScore = -Infinity
-      for (let i = 0; i < 16; i++) {
+      for (let i = 0; i < 4; i++) {
         // available?
         if (board[i].length === 4) {
           continue
@@ -92,7 +97,7 @@ class Game extends Component {
       return bestScore
     } else {
       let bestScore = Infinity
-      for (let i = 0; i < 16; i++) {
+      for (let i = 0; i < 4; i++) {
         // available?
         if (this.props.board[i].length === 4) {
           continue
@@ -110,47 +115,97 @@ class Game extends Component {
     }
   }
   bestMove() {
-    const { playMove, setBoard, winner, resetWinner, board, setWhiteToMove } =
-      this.props
-
+    const {
+      playMove,
+      setBoard,
+      winner,
+      resetWinner,
+      board,
+      setWhiteToMove,
+      whiteToMove,
+    } = this.props
+    const { qValues } = this.state
     if (winner) return
-    let bestScore = -Infinity
-    let move
-    let aboutToLose = false
 
-    for (let i = 0; i < 16; i++) {
-      // available?
-      if (this.props.board[i].length === 4) {
-        continue
+    if (this.state.minimax) {
+      let bestScore = -Infinity
+      let move
+      let aboutToLose = false
+
+      for (let i = 0; i < 4; i++) {
+        // available?
+        if (this.props.board[i].length === 4) {
+          continue
+        }
+
+        let oldBoard = [...board]
+        playMove(i)
+        let score = this.minimax(0, false)
+        setBoard(oldBoard)
+        resetWinner()
+        setWhiteToMove(true)
+
+        if (score === -1) {
+          aboutToLose = true
+        }
+
+        if (score > bestScore) {
+          bestScore = score
+          move = i
+        }
       }
 
-      let oldBoard = [...board]
-      playMove(i)
-      let score = this.minimax(0, false)
-      setBoard(oldBoard)
-      resetWinner()
-      setWhiteToMove(true)
-
-      if (score === -1) {
-        aboutToLose = true
+      if (bestScore === 0 && !aboutToLose) {
+        // random move
+        const availablePegs = [
+          0,
+          1,
+          2,
+          3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        ].filter((i) => board[i].length < 4)
+        const index = Math.floor(Math.random() * availablePegs.length)
+        move = availablePegs[index]
       }
 
-      if (score > bestScore) {
-        bestScore = score
-        move = i
-      }
-    }
-
-    if (bestScore === 0 && !aboutToLose) {
-      // random move
+      playMove(move)
+    } else {
       const availablePegs = [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0,
+        1,
+        2,
+        3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
       ].filter((i) => board[i].length < 4)
-      const index = Math.floor(Math.random() * availablePegs.length)
-      move = availablePegs[index]
-    }
 
-    playMove(move)
+      const index = Math.floor(Math.random() * availablePegs.length)
+      let move = availablePegs[index]
+      const newBoard = JSON.parse(JSON.stringify(board.slice(0, 4)))
+
+      // look up q value for possible moves
+      if (Math.random() > 0.5) {
+        let bestQ = 0
+        for (const peg of availablePegs) {
+          let newestBoard = JSON.parse(JSON.stringify(newBoard))
+          newestBoard[peg].push(whiteToMove ? 'W' : 'B')
+          const qValue = qValues[JSON.stringify(newestBoard)]
+          if (isNaN(qValue)) {
+            continue
+          }
+          console.log('found!', qValue, newestBoard)
+          if (whiteToMove) {
+            if (qValue < bestQ) {
+              bestQ = qValue
+              move = peg
+            }
+          } else {
+            if (qValue > bestQ) {
+              bestQ = qValue
+              move = peg
+            }
+          }
+        }
+      }
+      playMove(move)
+    }
   }
   onPegClick(id) {
     const { board, winner, playMove, whiteToMove } = this.props
@@ -164,7 +219,7 @@ class Game extends Component {
 
     if (solo) {
       playMove(id)
-      setTimeout(() => this.bestMove(), 100)
+      // setTimeout(() => this.bestMove(), 100)
       return
     } else {
       socket.emit('move', gameNumber, id)
@@ -200,10 +255,31 @@ class Game extends Component {
   }
   renderGrid() {
     const rows = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 1; i++) {
       rows.push(this.renderRow())
     }
     return <div className="grid">{rows}</div>
+  }
+  propogateQValues(winner) {
+    const { moves } = this.props
+    const { qValues } = this.state
+    const newMoves = moves.map((move) => move.slice(0, 4))
+    if (winner === 'B') {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = 1
+    } else if (winner === 'W') {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = -1
+    } else {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = 0
+    }
+    for (let i = newMoves.length - 2; i >= 0; i--) {
+      if (!qValues[JSON.stringify(newMoves[i])]) {
+        qValues[JSON.stringify(newMoves[i])] = 0
+      }
+      qValues[JSON.stringify(newMoves[i])] =
+        0.5 * qValues[JSON.stringify(newMoves[i])] +
+        0.5 * qValues[JSON.stringify(newMoves[i + 1])]
+    }
+    // console.log(qValues)
   }
   renderGameEnd(winner) {
     let winnerText
@@ -247,8 +323,35 @@ class Game extends Component {
     this.pegKey = 0
     this.rowKey = 0
 
+    if (!this.state.mounted) {
+      this.setState({ mounted: true })
+      // setTimeout(() => {
+      //   while (!winner) {
+      //     setTimeout(() => {
+      //       this.bestMove()
+      //     }, 0)
+      //   }
+      // }, 1000)
+
+      // setInterval(() => {
+      //   if (!winner) {
+      //     this.bestMove()
+      //   }
+      // }, 20)
+    }
+
+    if (winner) {
+      this.propogateQValues(winner)
+      if (counter++ < 10000) {
+        console.log(counter)
+        // this.resetGame()
+      } else {
+        localStorage.setItem('qValues', JSON.stringify(this.state.qValues))
+      }
+    }
+
     return (
-      <div className="game">
+      <div className="game" onClick={() => {} /*this.bestMove()*/}>
         {this.renderGrid()}
         {winner ? this.renderGameEnd(winner) : null}
         {this.renderOpponent()}
@@ -260,10 +363,10 @@ class Game extends Component {
 
 const GameContainer = connect(
   (state) => {
-    const { board, winner, winningPegs, whiteToMove } = state.game
+    const { board, winner, winningPegs, whiteToMove, moves } = state.game
     const { name } = state.user
 
-    return { board, winner, winningPegs, name, whiteToMove }
+    return { board, winner, winningPegs, name, whiteToMove, moves }
   },
   (dispatch) => ({
     playMove: (id) => dispatch(move(id)),
