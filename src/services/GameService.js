@@ -1,12 +1,19 @@
-import { gameWon, move } from '../actions/gameActions'
+import { gameWon, move, reset } from '../actions/gameActions'
+import qValues from '../data/qValues.json'
 
-const qValues = JSON.parse(localStorage.getItem('qValues') || '{}')
+// const qValues = require('../data/qValues.json')
+let count = 0
 
+const EXPLORATION_RATE = 0.1
 class GameService {
   constructor(sandbox) {
     this.$ = sandbox
 
     this.initListeners()
+
+    // setTimeout(() => {
+    //   this.bestMove()
+    // }, 1000)
   }
 
   initListeners() {
@@ -29,16 +36,17 @@ class GameService {
     const newBoard = JSON.parse(JSON.stringify(board.slice(0, 4)))
 
     // look up q value for possible moves
-    if (Math.random() > 0.5) {
+    if (Math.random() > EXPLORATION_RATE) {
       let bestQ = 0
+      console.log('new')
       for (const peg of availablePegs) {
         let newestBoard = JSON.parse(JSON.stringify(newBoard))
-        newestBoard[peg].push(whiteToMove ? 'W' : 'B')
+        newestBoard[peg].push(whiteToMove ? 1 : 0)
         const qValue = qValues[JSON.stringify(newestBoard)]
         if (isNaN(qValue)) {
           continue
         }
-        console.log('found!', qValue, newestBoard)
+        console.log('found!', qValue)
         if (whiteToMove) {
           if (qValue < bestQ) {
             bestQ = qValue
@@ -52,11 +60,44 @@ class GameService {
         }
       }
     }
-    this.$.store.dispatch(move(move))
+    this.$.store.dispatch(move(nextMove))
   }
 
+  downloadObjectAsJson(exportObj, exportName) {
+    var dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(exportObj))
+    var downloadAnchorNode = document.createElement('a')
+    downloadAnchorNode.setAttribute('href', dataStr)
+    downloadAnchorNode.setAttribute('download', exportName + '.json')
+    document.body.appendChild(downloadAnchorNode) // required for firefox
+    downloadAnchorNode.click()
+    downloadAnchorNode.remove()
+  }
+
+  propogateQValues(winner) {
+    const { moves } = this.$.store.getState().game
+    const newMoves = moves.map((move) => move.slice(0, 4))
+    if (winner === 'B') {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = 1
+    } else if (winner === 'W') {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = -1
+    } else {
+      qValues[JSON.stringify(newMoves[newMoves.length - 1])] = 0
+    }
+    for (let i = newMoves.length - 2; i >= 0; i--) {
+      if (!qValues[JSON.stringify(newMoves[i])]) {
+        qValues[JSON.stringify(newMoves[i])] = 0
+      }
+      qValues[JSON.stringify(newMoves[i])] =
+        0.5 * qValues[JSON.stringify(newMoves[i])] +
+        0.5 * qValues[JSON.stringify(newMoves[i + 1])]
+    }
+    // console.log(qValues)
+  }
   handleStateChange() {
     const { $ } = this
+    const { whiteToMove } = this.$.store.getState().game
 
     if ($.isGameOver) return
 
@@ -64,11 +105,25 @@ class GameService {
 
     if (winnerInfo) {
       $.store.dispatch(gameWon(winnerInfo))
+      this.propogateQValues(winnerInfo.winner)
+
+      if (count++ > 360000) {
+        // localStorage.setItem('qValues', JSON.stringify(qValues))
+        this.downloadObjectAsJson(qValues, 'qValues')
+        console.log('done')
+      } else {
+        // console.log(count)
+        // setTimeout(() => {
+        //   $.store.dispatch(reset())
+        // }, 0)
+      }
+      return
     }
 
-    setTimeout(() => {
+    if (whiteToMove) {
       this.bestMove()
-    }, 100)
+    }
+    // this.bestMove()
   }
 
   checkIfGameWon() {
@@ -121,7 +176,7 @@ class GameService {
   }
 
   fourInARowHelper(currentBead, potentialWin, iteration) {
-    if (!currentBead) {
+    if (isNaN(currentBead)) {
       return false
     } else if (iteration === 0) {
       potentialWin.push(currentBead)
@@ -129,7 +184,7 @@ class GameService {
       if (currentBead === potentialWin[iteration - 1]) {
         if (iteration === 3) {
           // game over
-          return currentBead // 'W' or 'B'
+          return currentBead == 1 ? 'W' : 'B'
         }
         potentialWin.push(currentBead)
       } else {
