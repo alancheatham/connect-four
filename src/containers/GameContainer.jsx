@@ -114,60 +114,6 @@ class Game extends Component {
       return bestScore
     }
   }
-  bestMove() {
-    const {
-      playMove,
-      setBoard,
-      winner,
-      resetWinner,
-      board,
-      setWhiteToMove,
-      whiteToMove,
-    } = this.props
-    const { qValues } = this.state
-    if (winner) return
-
-    let bestScore = -Infinity
-    let move
-    let aboutToLose = false
-
-    for (let i = 0; i < 4; i++) {
-      // available?
-      if (this.props.board[i].length === 4) {
-        continue
-      }
-
-      let oldBoard = [...board]
-      playMove(i)
-      let score = this.minimax(0, false)
-      setBoard(oldBoard)
-      resetWinner()
-      setWhiteToMove(true)
-
-      if (score === -1) {
-        aboutToLose = true
-      }
-
-      if (score > bestScore) {
-        bestScore = score
-        move = i
-      }
-    }
-
-    if (bestScore === 0 && !aboutToLose) {
-      // random move
-      const availablePegs = [
-        0,
-        1,
-        2,
-        3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-      ].filter((i) => board[i].length < 4)
-      const index = Math.floor(Math.random() * availablePegs.length)
-      move = availablePegs[index]
-    }
-
-    playMove(move)
-  }
   onPegClick(id) {
     const { board, winner, playMove, whiteToMove } = this.props
     const { opponent, gameNumber, white, solo } = this.state
@@ -216,7 +162,7 @@ class Game extends Component {
   }
   renderGrid() {
     const rows = []
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 4; i++) {
       rows.push(this.renderRow())
     }
     return <div className="grid">{rows}</div>

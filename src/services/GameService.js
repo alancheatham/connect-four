@@ -5,9 +5,10 @@ import qValues from '../data/qValues.json'
 // const qValues = require('../data/qValues.json')
 let whiteCount = 0
 
-const GAME_COUNT = 1000
+const GAME_COUNT = 1000000
 const learningRate = 0.005
 let model
+
 tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
   model = loadedModel
   model.compile({
@@ -22,22 +23,22 @@ tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
 
 // model.add(
 //   tf.layers.dense({
-//     inputShape: 16,
-//     units: 64,
+//     inputShape: 64,
+//     units: 128,
 //     activation: 'relu',
 //   }),
 // )
 
 // model.add(
 //   tf.layers.dense({
-//     units: 64,
+//     units: 128,
 //     activation: 'relu',
 //   }),
 // )
 
 // model.add(
 //   tf.layers.dense({
-//     units: 4,
+//     units: 16,
 //     activation: 'softmax',
 //   }),
 // )
@@ -72,10 +73,7 @@ class GameService {
     const { board, whiteToMove } = this.$.store.getState().game
 
     const availablePegs = [
-      0,
-      1,
-      2,
-      3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     ].filter((i) => board[i].findIndex((x) => x === 0) > -1)
 
     const index = Math.floor(Math.random() * availablePegs.length)
@@ -110,6 +108,7 @@ class GameService {
       }
     }
     if (!isNaN(nextMove)) {
+      // console.log('playing', nextMove)
       this.$.store.dispatch(move(nextMove))
     } else {
       this.neuralMove()
@@ -117,9 +116,12 @@ class GameService {
   }
 
   neuralMove() {
-    const { board, whiteToMove } = this.$.store.getState().game
+    const { board } = this.$.store.getState().game
 
-    const tenseBlock = tf.tensor([board.slice(0, 4).flat()])
+    const tenseBlock = tf.tensor([
+      board /*.slice(0, 4).*/
+        .flat(),
+    ])
     const result = model.predict(tenseBlock)
     const flatty = result.flatten()
     const maxy = flatty.argMax()
@@ -130,7 +132,13 @@ class GameService {
         result.dispose()
         maxy.dispose()
         console.log(allMoves)
-        this.$.store.dispatch(move(m[0]))
+        console.log(m[0])
+        if (board[m[0]].findIndex((x) => x === 0) > -1) {
+          this.$.store.dispatch(move(m[0]))
+        } else {
+          // console.log('illegal move')
+          this.moveFindWinWontLose()
+        }
       })
     })
   }
@@ -147,7 +155,7 @@ class GameService {
 
     const index = Math.floor(Math.random() * availablePegs.length)
     let nextMove = availablePegs[index]
-    const newBoard = JSON.parse(JSON.stringify(board.slice(0, 4)))
+    const newBoard = JSON.parse(JSON.stringify(board /*.slice(0, 4)*/))
 
     // look up q value for possible moves
     if (Math.random() > EXPLORATION_RATE) {
@@ -189,7 +197,7 @@ class GameService {
 
   propogateQValues(winner) {
     const { moves } = this.$.store.getState().game
-    const newMoves = moves.map((move) => move.slice(0, 4))
+    const newMoves = moves.map((move) => move /*.slice(0, 4)*/)
     if (winner === 'B') {
       qValues[JSON.stringify(newMoves[newMoves.length - 1])] = 1
     } else if (winner === 'W') {
@@ -224,7 +232,7 @@ class GameService {
     })
     // unflatten
     const newResult = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 16; i++) {
       newResult.push(result.slice(i * 4, i * 4 + 4))
     }
     return newResult.map((peg) => (peg.includes(1) ? 1 : 0))
@@ -240,8 +248,9 @@ class GameService {
       x.push(moves[i].flat())
       y.push(theMove.flat())
       // Flipped X move
-      x.push(this.flipX(moves[i]).flat())
-      y.push(this.flipX(theMove).flat())
+      // x.push(this.flipX(moves[i]).flat())
+      // y.push(this.flipX(theMove).flat())
+
       // Inverted Move
       // x.push(moves[i].slice().reverse())
       // y.push(theMove.slice().reverse())
@@ -278,27 +287,34 @@ class GameService {
           move.map((m) => m.map((n) => (n == 0 ? n : -n))),
         )
       }
+      // console.log(adjustedMoves)
 
       let allMoves = {
         x: this.getMirrorMoves(
-          adjustedMoves.map((m) => m.slice(0, 4)),
+          adjustedMoves /*.map((m) => m.slice(0, 4))*/,
         ).x.filter((x, i) => {
           if (winnerInfo.winner === 'B') {
-            return i % 4 === 0 || i % 4 === 1
+            // return i % 4 === 0 || i % 4 === 1
+            return i % 2 === 0
           } else {
-            return i % 4 === 2 || i % 4 === 3
+            // return i % 4 === 2 || i % 4 === 3
+            return i % 2 === 1
           }
         }),
         y: this.getMirrorMoves(
-          adjustedMoves.map((m) => m.slice(0, 4)),
+          adjustedMoves /*.map((m) => m.slice(0, 4))*/,
         ).y.filter((x, i) => {
           if (winnerInfo.winner === 'B') {
-            return i % 4 === 0 || i % 4 === 1
+            // return i % 4 === 0 || i % 4 === 1
+            return i % 2 === 0
           } else {
-            return i % 4 === 2 || i % 4 === 3
+            // return i % 4 === 2 || i % 4 === 3
+            return i % 2 === 1
           }
         }),
       }
+      // console.log(allMoves)
+
       this.trainOnGames([allMoves])
       $.store.dispatch(gameWon(winnerInfo))
       // this.propogateQValues(winnerInfo.winner)
@@ -310,6 +326,7 @@ class GameService {
         // this.downloadObjectAsJson(qValues, 'qValues')
         console.log('done')
       } else if (count % 1000 === 0) {
+        console.log('saving...')
         model.save('localstorage://my-model-1')
       } else {
         setTimeout(() => {
@@ -348,6 +365,7 @@ class GameService {
       AllX = AllX.concat(game.x)
       AllY = AllY.concat(game.y)
     })
+    // console.log(AllX, AllY)
 
     // Tensorfy!
     const stackedX = tf.stack(AllX)
