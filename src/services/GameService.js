@@ -4,49 +4,53 @@ import qValues from '../data/qValues.json'
 
 // const qValues = require('../data/qValues.json')
 let whiteCount = 0
+const MODE_TRAIN = false
 
 const GAME_COUNT = 1000
 const learningRate = 0.005
 let model
-tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
-  model = loadedModel
+
+if (MODE_TRAIN) {
+  model = tf.sequential()
+
+  model.add(
+    tf.layers.dense({
+      inputShape: 16,
+      units: 64,
+      activation: 'relu',
+    }),
+  )
+
+  model.add(
+    tf.layers.dense({
+      units: 64,
+      activation: 'relu',
+    }),
+  )
+
+  model.add(
+    tf.layers.dense({
+      units: 4,
+      activation: 'softmax',
+    }),
+  )
+
   model.compile({
     optimizer: tf.train.adam(learningRate),
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   })
-  console.log('loaded', model)
-})
-
-// model = tf.sequential()
-
-// model.add(
-//   tf.layers.dense({
-//     inputShape: 16,
-//     units: 64,
-//     activation: 'relu',
-//   }),
-// )
-
-// model.add(
-//   tf.layers.dense({
-//     units: 64,
-//     activation: 'relu',
-//   }),
-// )
-
-// model.add(
-//   tf.layers.dense({
-//     units: 4,
-//     activation: 'softmax',
-//   }),
-// )
-
-// model.compile({
-//   optimizer: tf.train.adam(learningRate),
-//   loss: 'categoricalCrossentropy',
-//   metrics: ['accuracy'],
-// })
+} else {
+  tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
+    model = loadedModel
+    model.compile({
+      optimizer: tf.train.adam(learningRate),
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy'],
+    })
+    console.log('loaded', model)
+  })
+}
 
 let count = 0
 let easy = false
@@ -58,9 +62,11 @@ class GameService {
 
     this.initListeners()
 
-    setTimeout(() => {
-      // this.moveFindWinWontLose()
-    }, 1000)
+    if (MODE_TRAIN) {
+      setTimeout(() => {
+        this.moveFindWinWontLose()
+      }, 1000)
+    }
   }
 
   initListeners() {
@@ -129,7 +135,7 @@ class GameService {
         tenseBlock.dispose()
         result.dispose()
         maxy.dispose()
-        console.log(allMoves)
+        console.log(m[0], allMoves)
         this.$.store.dispatch(move(m[0]))
       })
     })
@@ -319,19 +325,26 @@ class GameService {
       return
     } else if (winnerInfo && winnerInfo.winner === 'draw') {
       // $.store.dispatch(gameWon(winnerInfo))
-      setTimeout(() => {
-        $.store.dispatch(reset())
-      }, 0)
+      if (MODE_TRAIN) {
+        setTimeout(() => {
+          $.store.dispatch(reset())
+        }, 0)
+      }
       return
     }
 
     if (whiteToMove) {
       // this.bestMove()
-      this.neuralMove()
       // setTimeout(() => this.neuralMove(), 1000)
-      // this.moveFindWinWontLose()
+      if (MODE_TRAIN) {
+        this.moveFindWinWontLose()
+      } else {
+        this.neuralMove()
+      }
     } else {
-      // this.moveFindWinWontLose()
+      if (MODE_TRAIN) {
+        this.moveFindWinWontLose()
+      }
       // setTimeout(() => this.moveFindWinWontLose(), 1000)
     }
     // this.moveFindWinWontLose()
@@ -380,7 +393,7 @@ class GameService {
         callbacks: allCallbacks,
       })
       .then(() => {
-        if (count <= GAME_COUNT) {
+        if (count <= GAME_COUNT && MODE_TRAIN) {
           this.$.store.dispatch(reset())
         }
       })
