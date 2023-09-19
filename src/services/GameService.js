@@ -1,8 +1,55 @@
 import { gameWon, move, reset } from '../actions/gameActions'
 import qValues from '../data/qValues.json'
+// import * as tf from '@tensorflow/tfjs'
 
 // const qValues = require('../data/qValues.json')
+let whiteCount = 0
+
+const GAME_COUNT = 1000
+const learningRate = 0.005
+let model
+tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
+  model = loadedModel
+  model.compile({
+    optimizer: tf.train.adam(learningRate),
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy'],
+  })
+  console.log('loaded', model)
+})
+
+// model = tf.sequential()
+
+// model.add(
+//   tf.layers.dense({
+//     inputShape: 16,
+//     units: 64,
+//     activation: 'relu',
+//   }),
+// )
+
+// model.add(
+//   tf.layers.dense({
+//     units: 64,
+//     activation: 'relu',
+//   }),
+// )
+
+// model.add(
+//   tf.layers.dense({
+//     units: 4,
+//     activation: 'softmax',
+//   }),
+// )
+
+// model.compile({
+//   optimizer: tf.train.adam(learningRate),
+//   loss: 'categoricalCrossentropy',
+//   metrics: ['accuracy'],
+// })
+
 let count = 0
+let easy = false
 
 const EXPLORATION_RATE = 0.1
 class GameService {
@@ -11,14 +58,81 @@ class GameService {
 
     this.initListeners()
 
-    // setTimeout(() => {
-    //   this.bestMove()
-    // }, 1000)
+    setTimeout(() => {
+      // this.moveFindWinWontLose()
+    }, 1000)
   }
 
   initListeners() {
     const { $ } = this
     $.store.subscribe(() => this.handleStateChange())
+  }
+
+  moveFindWinWontLose() {
+    const { board, whiteToMove } = this.$.store.getState().game
+
+    const availablePegs = [
+      0,
+      1,
+      2,
+      3, //4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ].filter((i) => board[i].findIndex((x) => x === 0) > -1)
+
+    const index = Math.floor(Math.random() * availablePegs.length)
+    // let nextMove
+    let nextMove = availablePegs[index]
+    // const newBoard = JSON.parse(JSON.stringify(board.slice(0, 4)))
+    for (const peg of availablePegs) {
+      // check for white win
+      let newestBoard = JSON.parse(JSON.stringify(board))
+      let index = newestBoard[peg].indexOf(0)
+      newestBoard[peg][index] = 1
+      let winnerInfo = this.checkIfGameWon(newestBoard)
+      if (winnerInfo) {
+        const winner = winnerInfo.winner
+        if (winner === 'W') {
+          nextMove = peg
+          break
+        }
+      }
+
+      // prevent black win
+      newestBoard = JSON.parse(JSON.stringify(board))
+      index = newestBoard[peg].indexOf(0)
+      newestBoard[peg][index] = -1
+      winnerInfo = this.checkIfGameWon(newestBoard)
+      if (winnerInfo) {
+        const winner = winnerInfo.winner
+        if (winner === 'B') {
+          nextMove = peg
+          break
+        }
+      }
+    }
+    if (!isNaN(nextMove)) {
+      this.$.store.dispatch(move(nextMove))
+    } else {
+      this.neuralMove()
+    }
+  }
+
+  neuralMove() {
+    const { board, whiteToMove } = this.$.store.getState().game
+
+    const tenseBlock = tf.tensor([board.slice(0, 4).flat()])
+    const result = model.predict(tenseBlock)
+    const flatty = result.flatten()
+    const maxy = flatty.argMax()
+    maxy.data().then((m) => {
+      flatty.data().then((allMoves) => {
+        flatty.dispose()
+        tenseBlock.dispose()
+        result.dispose()
+        maxy.dispose()
+        console.log(allMoves)
+        this.$.store.dispatch(move(m[0]))
+      })
+    })
   }
 
   bestMove() {
@@ -38,7 +152,6 @@ class GameService {
     // look up q value for possible moves
     if (Math.random() > EXPLORATION_RATE) {
       let bestQ = 0
-      console.log('new')
       for (const peg of availablePegs) {
         let newestBoard = JSON.parse(JSON.stringify(newBoard))
         newestBoard[peg].push(whiteToMove ? 1 : 0)
@@ -46,7 +159,6 @@ class GameService {
         if (isNaN(qValue)) {
           continue
         }
-        console.log('found!', qValue)
         if (whiteToMove) {
           if (qValue < bestQ) {
             bestQ = qValue
@@ -95,64 +207,219 @@ class GameService {
     }
     // console.log(qValues)
   }
+
+  flipX(board) {
+    const newBoard = JSON.parse(JSON.stringify(board))
+    for (let i = 0; i < 4; i++) {
+      newBoard[i] = board[3 - i]
+    }
+    return newBoard
+  }
+
+  // Creates a 1 shot of the diff
+  nextMove(first, second) {
+    const result = []
+    first.flat().forEach((move, i) => {
+      result.push(Math.abs(move - second.flat()[i]))
+    })
+    // unflatten
+    const newResult = []
+    for (let i = 0; i < 4; i++) {
+      newResult.push(result.slice(i * 4, i * 4 + 4))
+    }
+    return newResult.map((peg) => (peg.includes(1) ? 1 : 0))
+  }
+
+  getMirrorMoves(moves) {
+    const x = []
+    const y = []
+    // Make all the moves
+    for (let i = 0; i < moves.length - 1; i++) {
+      const theMove = this.nextMove(moves[i], moves[i + 1])
+      // Normal move
+      x.push(moves[i].flat())
+      y.push(theMove.flat())
+      // Flipped X move
+      x.push(this.flipX(moves[i]).flat())
+      y.push(this.flipX(theMove).flat())
+      // Inverted Move
+      // x.push(moves[i].slice().reverse())
+      // y.push(theMove.slice().reverse())
+      // // Flipped Y move
+      // x.push(flipY(moves[i]))
+      // y.push(flipY(theMove))
+    }
+    return { x, y }
+  }
+
   handleStateChange() {
     const { $ } = this
-    const { whiteToMove } = this.$.store.getState().game
+    const { whiteToMove, moves } = this.$.store.getState().game
 
     if ($.isGameOver) return
 
     const winnerInfo = this.checkIfGameWon()
 
-    if (winnerInfo) {
-      $.store.dispatch(gameWon(winnerInfo))
-      this.propogateQValues(winnerInfo.winner)
-
-      if (count++ > 360000) {
-        // localStorage.setItem('qValues', JSON.stringify(qValues))
-        this.downloadObjectAsJson(qValues, 'qValues')
-        console.log('done')
-      } else {
-        // console.log(count)
-        // setTimeout(() => {
-        //   $.store.dispatch(reset())
-        // }, 0)
+    if (winnerInfo && winnerInfo.winner !== 'draw') {
+      console.log(count, winnerInfo.winner)
+      if (winnerInfo.winner === 'W') {
+        whiteCount++
       }
+      if (count % 100 === 0) {
+        console.log('rate over last 100', whiteCount / 100)
+        whiteCount = 0
+      }
+      if (count % 1000 === 0) {
+        console.log(count, winnerInfo.winner)
+      }
+      let adjustedMoves = [...moves]
+      if (winnerInfo.winner === 'B') {
+        adjustedMoves = moves.map((move) =>
+          move.map((m) => m.map((n) => (n == 0 ? n : -n))),
+        )
+      }
+
+      let allMoves = {
+        x: this.getMirrorMoves(
+          adjustedMoves.map((m) => m.slice(0, 4)),
+        ).x.filter((x, i) => {
+          if (winnerInfo.winner === 'B') {
+            return i % 4 === 0 || i % 4 === 1
+          } else {
+            return i % 4 === 2 || i % 4 === 3
+          }
+        }),
+        y: this.getMirrorMoves(
+          adjustedMoves.map((m) => m.slice(0, 4)),
+        ).y.filter((x, i) => {
+          if (winnerInfo.winner === 'B') {
+            return i % 4 === 0 || i % 4 === 1
+          } else {
+            return i % 4 === 2 || i % 4 === 3
+          }
+        }),
+      }
+      this.trainOnGames([allMoves])
+      $.store.dispatch(gameWon(winnerInfo))
+      // this.propogateQValues(winnerInfo.winner)
+
+      if (++count === GAME_COUNT) {
+        console.log('saving...')
+        model.save('localstorage://my-model-1')
+        // localStorage.setItem('qValues', JSON.stringify(qValues))
+        // this.downloadObjectAsJson(qValues, 'qValues')
+        console.log('done')
+      } else if (count % 1000 === 0) {
+        model.save('localstorage://my-model-1')
+      } else {
+        setTimeout(() => {
+          // $.store.dispatch(reset())
+        }, 0)
+      }
+      return
+    } else if (winnerInfo && winnerInfo.winner === 'draw') {
+      // $.store.dispatch(gameWon(winnerInfo))
+      setTimeout(() => {
+        $.store.dispatch(reset())
+      }, 0)
       return
     }
 
     if (whiteToMove) {
-      this.bestMove()
+      // this.bestMove()
+      this.neuralMove()
+      // setTimeout(() => this.neuralMove(), 1000)
+      // this.moveFindWinWontLose()
+    } else {
+      // this.moveFindWinWontLose()
+      // setTimeout(() => this.moveFindWinWontLose(), 1000)
     }
+    // this.moveFindWinWontLose()
     // this.bestMove()
   }
+  trainOnGames(games) {
+    // console.log('training')
+    // model.dispose();
+    let AllX = []
+    let AllY = []
 
-  checkIfGameWon() {
+    // console.log("Games in", JSON.stringify(games));
+    games.forEach((game) => {
+      AllX = AllX.concat(game.x)
+      AllY = AllY.concat(game.y)
+    })
+
+    // Tensorfy!
+    const stackedX = tf.stack(AllX)
+    const stackedY = tf.stack(AllY)
+    this.trainModel(model, stackedX, stackedY)
+
+    // clean up!
+    // stackedX.dispose()
+    // stackedY.dispose()
+
+    // setState(model)
+    // return updatedModel;
+  }
+
+  trainModel(model, stackedX, stackedY) {
+    const allCallbacks = {
+      // onTrainBegin: log => console.log(log),
+      // onTrainEnd: log => console.log(log),
+      // onEpochBegin: (epoch, log) => console.log(epoch, log),
+      // onEpochEnd: (epoch, log) => console.log(epoch, log),
+      // onBatchBegin: (batch, log) => console.log(batch, log),
+      // onBatchEnd: (batch, log) => console.log(batch, log)
+    }
+
+    model
+      .fit(stackedX, stackedY, {
+        epochs: 1,
+        shuffle: true,
+        batchSize: 32,
+        callbacks: allCallbacks,
+      })
+      .then(() => {
+        if (count <= GAME_COUNT) {
+          this.$.store.dispatch(reset())
+        }
+      })
+
+    // console.log('Model Trained')
+
+    return model
+  }
+
+  checkIfGameWon(board) {
     let winner = ''
+    if (!board) {
+      board = this.$.store.getState().game.board
+    }
 
     // same level
-    winner = this.checkHorizontalPlanes()
+    winner = this.checkHorizontalPlanes(board)
     if (winner) return winner
 
-    winner = this.checkVerticalPlanes()
+    winner = this.checkVerticalPlanes(board)
     if (winner) return winner
 
-    winner = this.checkDiagonalPlanes()
+    winner = this.checkDiagonalPlanes(board)
     if (winner) return winner
 
     // multi level
-    winner = this.checkVerticalPegs()
+    winner = this.checkVerticalPegs(board)
     if (winner) return winner
 
-    winner = this.checkHorizontalStairs()
+    winner = this.checkHorizontalStairs(board)
     if (winner) return winner
 
-    winner = this.checkVerticalStairs()
+    winner = this.checkVerticalStairs(board)
     if (winner) return winner
 
-    winner = this.checkDiagonalStairs()
+    winner = this.checkDiagonalStairs(board)
     if (winner) return winner
 
-    if (this.checkIfBoardFull()) {
+    if (this.checkIfBoardFull(board)) {
       return {
         winner: 'draw',
         winningPegs: [],
@@ -162,12 +429,9 @@ class GameService {
     return winner
   }
 
-  checkIfBoardFull() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkIfBoardFull(board) {
     for (let i = 0; i < 4; i++) {
-      if (board[i].length < 4) {
+      if (board[i].findIndex((x) => x === 0) > -1) {
         return false
       }
     }
@@ -176,7 +440,7 @@ class GameService {
   }
 
   fourInARowHelper(currentBead, potentialWin, iteration) {
-    if (isNaN(currentBead)) {
+    if (currentBead === 0) {
       return false
     } else if (iteration === 0) {
       potentialWin.push(currentBead)
@@ -193,10 +457,7 @@ class GameService {
     }
   }
 
-  checkHorizontalPlanes() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkHorizontalPlanes(board) {
     let potentialWin = []
 
     // z axis
@@ -227,10 +488,7 @@ class GameService {
     }
   }
 
-  checkVerticalPlanes() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkVerticalPlanes(board) {
     let potentialWin = []
 
     // z axis
@@ -261,10 +519,7 @@ class GameService {
     }
   }
 
-  checkDiagonalPlanes() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkDiagonalPlanes(board) {
     let potentialWin = []
 
     // z axis
@@ -303,10 +558,7 @@ class GameService {
     }
   }
 
-  checkVerticalPegs() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkVerticalPegs(board) {
     let potentialWin = []
 
     // y axis
@@ -332,10 +584,7 @@ class GameService {
     }
   }
 
-  checkHorizontalStairs() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkHorizontalStairs(board) {
     let potentialWin = []
 
     // y axis
@@ -384,10 +633,7 @@ class GameService {
     }
   }
 
-  checkVerticalStairs() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkVerticalStairs(board) {
     let potentialWin = []
 
     // x axis
@@ -436,10 +682,7 @@ class GameService {
     }
   }
 
-  checkDiagonalStairs() {
-    const { $ } = this
-    const { board } = $.store.getState().game
-
+  checkDiagonalStairs(board) {
     let potentialWin = []
 
     // diagonal one

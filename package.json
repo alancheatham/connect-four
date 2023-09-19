@@ -10,6 +10,7 @@
     "prettier": "prettier src"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.10.0",
     "babel-loader": "^6.2.5",
     "babel-polyfill": "^6.13.0",
     "babel-preset-es2015": "^6.14.0",

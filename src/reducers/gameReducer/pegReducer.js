@@ -9,7 +9,10 @@ const pegReducer = (
   const { type, ...payload } = action
   switch (type) {
     case MOVE:
-      return [...state, whiteToMove ? 1 : 0]
+      const index = state.indexOf(0)
+      const newState = [...state]
+      newState[index] = whiteToMove ? 1 : -1
+      return newState
 
     default:
       return state

@@ -28,7 +28,7 @@ const ConnectFourPeg = ({
       renderBeads.push(
         <div className="bead" style={{ bottom: 20 * i }} key={n++}></div>,
       )
-    } else {
+    } else if (beads[i] === -1) {
       renderBeads.push(
         <div className="bead black" style={{ bottom: 20 * i }} key={n++}></div>,
       )

@@ -176,7 +176,7 @@ class Game extends Component {
 
     if (winner || !opponent) return
 
-    if (board[id].length > 3) return
+    if (board[id].findIndex((x) => x === 0) === -1) return
 
     if (solo) {
       playMove(id)
