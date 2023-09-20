@@ -65,55 +65,6 @@ class Game extends Component {
     if (gameNumber !== game) return
     playMove(id)
   }
-  minimax(depth, isMaximizingPlayer) {
-    const { winner, board, playMove, setBoard, resetWinner, setWhiteToMove } =
-      this.props
-
-    if (winner) {
-      return scores[winner]
-    }
-
-    if (depth > 4) {
-      return 0
-    }
-
-    if (isMaximizingPlayer) {
-      let bestScore = -Infinity
-      for (let i = 0; i < 4; i++) {
-        // available?
-        if (board[i].length === 4) {
-          continue
-        }
-
-        let oldBoard = [...board]
-        playMove(i)
-        let score = this.minimax(depth + 1, false)
-        setBoard(oldBoard)
-        resetWinner()
-        setWhiteToMove(true)
-        bestScore = Math.max(score, bestScore)
-      }
-
-      return bestScore
-    } else {
-      let bestScore = Infinity
-      for (let i = 0; i < 4; i++) {
-        // available?
-        if (this.props.board[i].length === 4) {
-          continue
-        }
-
-        let oldBoard = [...board]
-        playMove(i)
-        let score = this.minimax(depth + 1, true)
-        setBoard(oldBoard)
-        resetWinner()
-        setWhiteToMove(false)
-        bestScore = Math.min(score, bestScore)
-      }
-      return bestScore
-    }
-  }
   onPegClick(id) {
     const { board, winner, playMove, whiteToMove } = this.props
     const { opponent, gameNumber, white, solo } = this.state
@@ -210,7 +161,7 @@ class Game extends Component {
     this.rowKey = 0
 
     return (
-      <div className="game" onClick={() => {} /*this.bestMove()*/}>
+      <div className="game">
         {this.renderGrid()}
         {winner ? this.renderGameEnd(winner) : null}
         {/* {this.renderOpponent()}

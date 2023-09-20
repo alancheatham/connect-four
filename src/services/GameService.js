@@ -5,49 +5,54 @@ import qValues from '../data/qValues.json'
 // const qValues = require('../data/qValues.json')
 let whiteCount = 0
 
-const GAME_COUNT = 1000000
+const MODE_TRAIN = false
+const TRAIN_NEW = false
+
+const GAME_COUNT = 1000
 const learningRate = 0.005
 let model
 
-tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
-  model = loadedModel
+if (TRAIN_NEW) {
+  model = tf.sequential()
+
+  model.add(
+    tf.layers.dense({
+      inputShape: 64,
+      units: 128,
+      activation: 'relu',
+    }),
+  )
+
+  model.add(
+    tf.layers.dense({
+      units: 128,
+      activation: 'relu',
+    }),
+  )
+
+  model.add(
+    tf.layers.dense({
+      units: 16,
+      activation: 'softmax',
+    }),
+  )
+
   model.compile({
     optimizer: tf.train.adam(learningRate),
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   })
-  console.log('loaded', model)
-})
-
-// model = tf.sequential()
-
-// model.add(
-//   tf.layers.dense({
-//     inputShape: 64,
-//     units: 128,
-//     activation: 'relu',
-//   }),
-// )
-
-// model.add(
-//   tf.layers.dense({
-//     units: 128,
-//     activation: 'relu',
-//   }),
-// )
-
-// model.add(
-//   tf.layers.dense({
-//     units: 16,
-//     activation: 'softmax',
-//   }),
-// )
-
-// model.compile({
-//   optimizer: tf.train.adam(learningRate),
-//   loss: 'categoricalCrossentropy',
-//   metrics: ['accuracy'],
-// })
+} else {
+  tf.loadLayersModel('localstorage://my-model-1').then((loadedModel) => {
+    model = loadedModel
+    model.compile({
+      optimizer: tf.train.adam(learningRate),
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy'],
+    })
+    console.log('loaded', model)
+  })
+}
 
 let count = 0
 let easy = false
@@ -59,9 +64,9 @@ class GameService {
 
     this.initListeners()
 
-    setTimeout(() => {
-      // this.moveFindWinWontLose()
-    }, 1000)
+    if (MODE_TRAIN) {
+      this.moveFindWinWontLose()
+    }
   }
 
   initListeners() {
@@ -141,6 +146,112 @@ class GameService {
         }
       })
     })
+  }
+
+  getAvailablePegs(board) {
+    return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].filter(
+      (i) => board[i].findIndex((x) => x === 0) > -1,
+    )
+  }
+
+  topMinimax() {
+    const { board, whiteToMove } = this.$.store.getState().game
+
+    const availablePegs = this.getAvailablePegs(board)
+    let aboutToLose = false
+    let bestMove
+    let score = whiteToMove ? -Infinity : Infinity
+    let value = 0
+
+    debugger
+    for (const peg of availablePegs) {
+      const newBoard = JSON.parse(JSON.stringify(board))
+      const index = newBoard[peg].indexOf(0)
+      newBoard[peg][index] = whiteToMove ? 1 : -1
+
+      value = this.minimax(newBoard, 3, !whiteToMove)
+      console.log(value)
+
+      if (whiteToMove) {
+        // win
+        if (value === 1) {
+          this.$.store.dispatch(move(peg))
+          return
+        }
+        if (value > score) {
+          bestMove = peg
+          score = value
+        }
+      } else {
+        // win
+        if (value === -1) {
+          this.$.store.dispatch(move(peg))
+          return
+        }
+        if (value < score) {
+          bestMove = peg
+          score = value
+        }
+      }
+    }
+
+    if (bestMove) {
+      this.$.store.dispatch(move(bestMove))
+      return
+    }
+
+    // play random move
+    this.moveFindWinWontLose()
+  }
+
+  minimax(board, depth, isMaximizingPlayer) {
+    let value = 0
+
+    // check for  win
+    let winnerInfo = this.checkIfGameWon(board)
+    if (winnerInfo) {
+      if (winnerInfo.winner === 'W') {
+        return 1
+      }
+      if (winnerInfo.winner === 'B') {
+        return -1
+      } else {
+        return 0
+      }
+    }
+
+    if (depth === 0) {
+      return 0
+    }
+
+    const availablePegs = this.getAvailablePegs(board)
+    if (isMaximizingPlayer) {
+      value = -Infinity
+
+      for (const peg of availablePegs) {
+        const nextIndex = board[peg].indexOf(0)
+
+        const newBoard = JSON.parse(JSON.stringify(board))
+        newBoard[peg][nextIndex] = 1
+
+        value = Math.max(value, this.minimax(newBoard, depth - 1, false))
+      }
+
+      return value
+    } else {
+      value = Infinity
+
+      for (const peg of availablePegs) {
+        const nextIndex = board[peg].indexOf(0)
+
+        const newBoard = JSON.parse(JSON.stringify(board))
+        newBoard[peg][nextIndex] = -1
+
+        value = Math.min(value, this.minimax(newBoard, depth - 1, true))
+      }
+
+      return value
+    }
   }
 
   bestMove() {
@@ -263,7 +374,7 @@ class GameService {
 
   handleStateChange() {
     const { $ } = this
-    const { whiteToMove, moves } = this.$.store.getState().game
+    const { whiteToMove, moves, board } = this.$.store.getState().game
 
     if ($.isGameOver) return
 
@@ -315,7 +426,7 @@ class GameService {
       }
       // console.log(allMoves)
 
-      this.trainOnGames([allMoves])
+      // this.trainOnGames([allMoves])
       $.store.dispatch(gameWon(winnerInfo))
       // this.propogateQValues(winnerInfo.winner)
 
@@ -344,11 +455,17 @@ class GameService {
 
     if (whiteToMove) {
       // this.bestMove()
-      this.neuralMove()
       // setTimeout(() => this.neuralMove(), 1000)
-      // this.moveFindWinWontLose()
+      if (MODE_TRAIN) {
+        this.moveFindWinWontLose()
+      } else {
+        // this.neuralMove()
+        this.topMinimax()
+      }
     } else {
-      // this.moveFindWinWontLose()
+      if (MODE_TRAIN) {
+        this.moveFindWinWontLose()
+      }
       // setTimeout(() => this.moveFindWinWontLose(), 1000)
     }
     // this.moveFindWinWontLose()
