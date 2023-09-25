@@ -8,7 +8,7 @@ let whiteCount = 0
 const MODE_TRAIN = false
 const TRAIN_NEW = false
 
-const GAME_COUNT = 1000
+const GAME_COUNT = 10000
 const learningRate = 0.005
 let model
 
@@ -113,7 +113,6 @@ class GameService {
       }
     }
     if (!isNaN(nextMove)) {
-      // console.log('playing', nextMove)
       this.$.store.dispatch(move(nextMove))
     } else {
       this.neuralMove()
@@ -141,7 +140,7 @@ class GameService {
         if (board[m[0]].findIndex((x) => x === 0) > -1) {
           this.$.store.dispatch(move(m[0]))
         } else {
-          // console.log('illegal move')
+          console.log('illegal move')
           this.moveFindWinWontLose()
         }
       })
@@ -155,6 +154,7 @@ class GameService {
   }
 
   topMinimax() {
+    const now = Date.now()
     const { board, whiteToMove } = this.$.store.getState().game
 
     const availablePegs = this.getAvailablePegs(board)
@@ -164,23 +164,30 @@ class GameService {
     let value = 0
 
     debugger
+    const scores = {
+      '-1': [],
+      0: [],
+      1: [],
+    }
     for (const peg of availablePegs) {
       const newBoard = JSON.parse(JSON.stringify(board))
       const index = newBoard[peg].indexOf(0)
       newBoard[peg][index] = whiteToMove ? 1 : -1
 
-      value = this.minimax(newBoard, 3, !whiteToMove)
-      console.log(value)
+      value = this.minimax(newBoard, 3, -Infinity, Infinity, !whiteToMove)
+      // console.log(value)
+
+      if ((value === -1 && whiteToMove) || (value === 1 && !whiteToMove)) {
+        aboutToLose = true
+      }
 
       if (whiteToMove) {
         // win
         if (value === 1) {
           this.$.store.dispatch(move(peg))
           return
-        }
-        if (value > score) {
-          bestMove = peg
-          score = value
+        } else {
+          scores[value].push(peg)
         }
       } else {
         // win
@@ -195,16 +202,39 @@ class GameService {
       }
     }
 
-    if (bestMove) {
-      this.$.store.dispatch(move(bestMove))
+    // if (score === 0 && !aboutToLose) {
+    //   // play random move
+    //   console.log('playing random')
+    //   this.moveFindWinWontLose()
+    //   return
+    // }
+
+    // console.log('time', Date.now() - now)
+    if (scores[0].length > 0) {
+      for (const peg of scores[0]) {
+        const newBoard = JSON.parse(JSON.stringify(board))
+        const index = newBoard[peg].indexOf(0)
+        newBoard[peg][index] = whiteToMove ? 1 : -1
+        if (this.threatensVictory(newBoard)) {
+          // console.log('threatening!')
+          this.$.store.dispatch(move(peg))
+          return
+        }
+      }
+      // console.log('random', scores)
+      const index = Math.floor(Math.random() * scores[0].length)
+      // let nextMove
+      let nextMove = scores[0][index]
+      this.$.store.dispatch(move(nextMove))
       return
     }
 
-    // play random move
+    // game is lost, try to block anyway
+    // console.log('lost')
     this.moveFindWinWontLose()
   }
 
-  minimax(board, depth, isMaximizingPlayer) {
+  minimax(board, depth, alpha, beta, isMaximizingPlayer) {
     let value = 0
 
     // check for  win
@@ -234,7 +264,14 @@ class GameService {
         const newBoard = JSON.parse(JSON.stringify(board))
         newBoard[peg][nextIndex] = 1
 
-        value = Math.max(value, this.minimax(newBoard, depth - 1, false))
+        value = Math.max(
+          value,
+          this.minimax(newBoard, depth - 1, alpha, beta, false),
+        )
+        if (value > beta) {
+          break
+        }
+        alpha = Math.max(alpha, value)
       }
 
       return value
@@ -247,7 +284,14 @@ class GameService {
         const newBoard = JSON.parse(JSON.stringify(board))
         newBoard[peg][nextIndex] = -1
 
-        value = Math.min(value, this.minimax(newBoard, depth - 1, true))
+        value = Math.min(
+          value,
+          this.minimax(newBoard, depth - 1, alpha, beta, true),
+        )
+        if (value < alpha) {
+          break
+        }
+        beta = Math.min(beta, value)
       }
 
       return value
@@ -328,9 +372,17 @@ class GameService {
   }
 
   flipX(board) {
-    const newBoard = JSON.parse(JSON.stringify(board))
+    const newBoard = []
     for (let i = 0; i < 4; i++) {
-      newBoard[i] = board[3 - i]
+      newBoard.push(...board.slice(4 * i, 4 * i + 4).reverse())
+    }
+    return newBoard
+  }
+
+  flipY(board) {
+    const newBoard = []
+    for (let i = 0; i < 16; i++) {
+      newBoard[4 * (3 - parseInt(i / 4)) + (i % 4)] = board[i]
     }
     return newBoard
   }
@@ -358,118 +410,118 @@ class GameService {
       // Normal move
       x.push(moves[i].flat())
       y.push(theMove.flat())
+
       // Flipped X move
-      // x.push(this.flipX(moves[i]).flat())
-      // y.push(this.flipX(theMove).flat())
+      x.push(this.flipX(moves[i]).flat())
+      y.push(this.flipX(theMove).flat())
+
+      // Flipped Y move
+      x.push(this.flipY(moves[i]).flat())
+      y.push(this.flipY(theMove).flat())
 
       // Inverted Move
-      // x.push(moves[i].slice().reverse())
-      // y.push(theMove.slice().reverse())
-      // // Flipped Y move
-      // x.push(flipY(moves[i]))
-      // y.push(flipY(theMove))
+      x.push(moves[i].slice().reverse().flat())
+      y.push(theMove.slice().reverse().flat())
     }
     return { x, y }
   }
 
   handleStateChange() {
-    const { $ } = this
-    const { whiteToMove, moves, board } = this.$.store.getState().game
+    setTimeout(() => {
+      const { $ } = this
+      const { whiteToMove, moves, board } = this.$.store.getState().game
 
-    if ($.isGameOver) return
+      if ($.isGameOver) return
 
-    const winnerInfo = this.checkIfGameWon()
+      const winnerInfo = this.checkIfGameWon()
 
-    if (winnerInfo && winnerInfo.winner !== 'draw') {
-      console.log(count, winnerInfo.winner)
-      if (winnerInfo.winner === 'W') {
-        whiteCount++
-      }
-      if (count % 100 === 0) {
-        console.log('rate over last 100', whiteCount / 100)
-        whiteCount = 0
-      }
-      if (count % 1000 === 0) {
+      if (winnerInfo && winnerInfo.winner !== 'draw') {
         console.log(count, winnerInfo.winner)
-      }
-      let adjustedMoves = [...moves]
-      if (winnerInfo.winner === 'B') {
-        adjustedMoves = moves.map((move) =>
-          move.map((m) => m.map((n) => (n == 0 ? n : -n))),
-        )
-      }
-      // console.log(adjustedMoves)
+        if (winnerInfo.winner === 'W') {
+          whiteCount++
+        }
+        if (count % 100 === 0) {
+          console.log('rate over last 100', whiteCount / 100)
+          whiteCount = 0
+        }
+        if (count % 1000 === 0) {
+          console.log(count, winnerInfo.winner)
+        }
+        let adjustedMoves = [...moves]
+        if (winnerInfo.winner === 'B') {
+          adjustedMoves = moves.map((move) =>
+            move.map((m) => m.map((n) => (n == 0 ? n : -n))),
+          )
+        }
 
-      let allMoves = {
-        x: this.getMirrorMoves(
-          adjustedMoves /*.map((m) => m.slice(0, 4))*/,
-        ).x.filter((x, i) => {
-          if (winnerInfo.winner === 'B') {
-            // return i % 4 === 0 || i % 4 === 1
-            return i % 2 === 0
-          } else {
-            // return i % 4 === 2 || i % 4 === 3
-            return i % 2 === 1
-          }
-        }),
-        y: this.getMirrorMoves(
-          adjustedMoves /*.map((m) => m.slice(0, 4))*/,
-        ).y.filter((x, i) => {
-          if (winnerInfo.winner === 'B') {
-            // return i % 4 === 0 || i % 4 === 1
-            return i % 2 === 0
-          } else {
-            // return i % 4 === 2 || i % 4 === 3
-            return i % 2 === 1
-          }
-        }),
-      }
-      // console.log(allMoves)
+        let winningMoves = {
+          x: this.getMirrorMoves(
+            adjustedMoves /*.map((m) => m.slice(0, 4))*/,
+          ).x.filter((x, i) => {
+            if (winnerInfo.winner === 'B') {
+              return i % 8 < 3
+            } else {
+              return i % 8 > 3
+            }
+          }),
+          y: this.getMirrorMoves(
+            adjustedMoves /*.map((m) => m.slice(0, 4))*/,
+          ).y.filter((x, i) => {
+            if (winnerInfo.winner === 'B') {
+              return i % 8 < 3
+            } else {
+              return i % 8 > 3
+            }
+          }),
+        }
+        // console.log('winning', winningMoves)
 
-      // this.trainOnGames([allMoves])
-      $.store.dispatch(gameWon(winnerInfo))
-      // this.propogateQValues(winnerInfo.winner)
+        this.trainOnGames([winningMoves])
+        $.store.dispatch(gameWon(winnerInfo))
+        // this.propogateQValues(winnerInfo.winner)
 
-      if (++count === GAME_COUNT) {
-        console.log('saving...')
-        model.save('localstorage://my-model-1')
-        // localStorage.setItem('qValues', JSON.stringify(qValues))
-        // this.downloadObjectAsJson(qValues, 'qValues')
-        console.log('done')
-      } else if (count % 1000 === 0) {
-        console.log('saving...')
-        model.save('localstorage://my-model-1')
-      } else {
+        if (++count === GAME_COUNT) {
+          console.log('saving...')
+          model.save('localstorage://my-model-1')
+          // localStorage.setItem('qValues', JSON.stringify(qValues))
+          // this.downloadObjectAsJson(qValues, 'qValues')
+          console.log('done')
+        } else if (count % 100 === 0) {
+          console.log('saving...')
+          model.save('localstorage://my-model-1')
+        } else {
+          setTimeout(() => {
+            // $.store.dispatch(reset())
+          }, 0)
+        }
+        return
+      } else if (winnerInfo && winnerInfo.winner === 'draw') {
+        // $.store.dispatch(gameWon(winnerInfo))
         setTimeout(() => {
-          // $.store.dispatch(reset())
+          $.store.dispatch(reset())
         }, 0)
+        return
       }
-      return
-    } else if (winnerInfo && winnerInfo.winner === 'draw') {
-      // $.store.dispatch(gameWon(winnerInfo))
-      setTimeout(() => {
-        $.store.dispatch(reset())
-      }, 0)
-      return
-    }
 
-    if (whiteToMove) {
-      // this.bestMove()
-      // setTimeout(() => this.neuralMove(), 1000)
-      if (MODE_TRAIN) {
-        this.moveFindWinWontLose()
+      if (whiteToMove) {
+        // this.bestMove()
+        // setTimeout(() => this.neuralMove(), 1000)
+        if (MODE_TRAIN) {
+          // this.moveFindWinWontLose()
+          this.topMinimax()
+        } else {
+          this.neuralMove()
+          // this.topMinimax()
+        }
       } else {
-        // this.neuralMove()
-        this.topMinimax()
+        if (MODE_TRAIN) {
+          this.moveFindWinWontLose()
+        }
+        // setTimeout(() => this.moveFindWinWontLose(), 1000)
       }
-    } else {
-      if (MODE_TRAIN) {
-        this.moveFindWinWontLose()
-      }
-      // setTimeout(() => this.moveFindWinWontLose(), 1000)
-    }
-    // this.moveFindWinWontLose()
-    // this.bestMove()
+      // this.moveFindWinWontLose()
+      // this.bestMove()
+    }, 0)
   }
   trainOnGames(games) {
     // console.log('training')
@@ -482,7 +534,7 @@ class GameService {
       AllX = AllX.concat(game.x)
       AllY = AllY.concat(game.y)
     })
-    // console.log(AllX, AllY)
+    // console.log('allx, ally', AllX, AllY)
 
     // Tensorfy!
     const stackedX = tf.stack(AllX)
@@ -509,7 +561,7 @@ class GameService {
 
     model
       .fit(stackedX, stackedY, {
-        epochs: 1,
+        epochs: 100,
         shuffle: true,
         batchSize: 32,
         callbacks: allCallbacks,
@@ -523,6 +575,29 @@ class GameService {
     // console.log('Model Trained')
 
     return model
+  }
+
+  threatensVictory(board) {
+    const { whiteToMove } = this.$.store.getState().game
+
+    const availablePegs = this.getAvailablePegs(board)
+    for (const peg of availablePegs) {
+      const newBoard = JSON.parse(JSON.stringify(board))
+      const index = newBoard[peg].indexOf(0)
+      newBoard[peg][index] = whiteToMove ? 1 : -1
+
+      const winnerInfo = this.checkIfGameWon(newBoard)
+      if (winnerInfo) {
+        const winner = winnerInfo.winner
+        if (
+          (winner === 'W' && whiteToMove) ||
+          (winner === 'B' && !whiteToMove)
+        ) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   checkIfGameWon(board) {

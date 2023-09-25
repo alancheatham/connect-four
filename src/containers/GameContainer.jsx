@@ -113,7 +113,7 @@ class Game extends Component {
   }
   renderGrid() {
     const rows = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 1; i++) {
       rows.push(this.renderRow())
     }
     return <div className="grid">{rows}</div>
